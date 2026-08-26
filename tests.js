@@ -1,0 +1,14 @@
+const fs=require('fs'),assert=require('assert'),cp=require('child_process');
+const read=file=>fs.readFileSync(file,'utf8');
+for(const file of ['script.js','home-news.js','menu-extra.js','supabase.js','blog.js','post.js','admin.js'])cp.execFileSync(process.execPath,['--check',file],{stdio:'inherit'});
+const css=read('styles.css'),sql=read('supabase/migration.sql'),admin=read('admin.js'),post=read('post.js'),blog=read('blog.js');
+for(const token of ['position:fixed','min-height:100dvh','env(safe-area-inset-top)','z-index:1000','overflow-y:auto'])assert(css.includes(token),`Menu mobile sem ${token}`);
+assert(css.includes('@media(max-width:390px)'),'Breakpoint de 390px ausente');
+assert(admin.includes("signInWithPassword")&&admin.includes("rpc('is_admin')"),'Autenticação administrativa ausente');
+assert(admin.includes("code==='23505'")&&admin.includes('validImage'),'Validação de slug/upload ausente');
+assert(sql.includes('enable row level security')&&sql.includes('public reads published posts'),'RLS pública ausente');
+assert(sql.includes('admins insert posts')&&sql.includes('admins delete posts'),'RLS administrativa ausente');
+assert(post.includes("eq('slug',slug)")&&post.includes('NewsArticle'),'Rota dinâmica ou SEO ausente');
+assert(blog.includes("eq('status','published')")&&blog.includes('post-search'),'Feed público incompleto');
+assert(read('supabase.js').includes('textContent=String(value)'),'Escape de conteúdo ausente');
+console.log('Todos os testes estruturais passaram.');

@@ -1,0 +1,1 @@
+document.addEventListener('click',event=>{const link=event.target.closest('#nav a');const nav=document.querySelector('#nav'),button=document.querySelector('.menu');if(link&&nav?.classList.contains('open'))button?.click()});

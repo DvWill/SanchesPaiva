@@ -10,6 +10,7 @@ const mimeTypes = {
   '.js': 'text/javascript; charset=utf-8',
   '.svg': 'image/svg+xml',
   '.webp': 'image/webp',
+  '.avif': 'image/avif',
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
   '.jpeg': 'image/jpeg'
@@ -17,7 +18,13 @@ const mimeTypes = {
 
 http.createServer((request, response) => {
   const requestPath = decodeURIComponent(request.url.split('?')[0]);
-  const relativePath = requestPath === '/' ? 'index.html' : requestPath.replace(/^\/+/, '');
+  const routes = {
+    '/': 'index.html', '/blog': 'blog.html', '/admin': 'admin/index.html',
+    '/admin/login': 'admin/login.html', '/admin/noticias/nova': 'admin/editor.html'
+  };
+  let relativePath = routes[requestPath] || requestPath.replace(/^\/+/, '');
+  if (/^\/blog\/[^/]+\/?$/.test(requestPath)) relativePath = 'post.html';
+  if (/^\/admin\/noticias\/[^/]+\/editar\/?$/.test(requestPath)) relativePath = 'admin/editor.html';
   const filePath = path.resolve(root, relativePath);
 
   if (!filePath.startsWith(root + path.sep) && filePath !== path.join(root, 'index.html')) {
