@@ -16,12 +16,12 @@
       const safe=this.escape(value).replace(/^### (.+)$/gm,'<h3>$1</h3>').replace(/^## (.+)$/gm,'<h2>$1</h2>').replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>').replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\*(.+?)\*/g,'<em>$1</em>');
       return safe.split(/\n{2,}/).map(part => /^<(h2|h3|blockquote)/.test(part) ? part : `<p>${part.replace(/\n/g,'<br>')}</p>`).join('');
     },
-    fallbackImage: '/assets/og-sanches-paiva.svg'
+    fallbackImage: 'assets/og-sanches-paiva.svg'
   };
-  if (ready && /^\/blog\/[^/]+\/?$/.test(location.pathname)) {
+  if (ready && (/^\/blog\/[^/]+\/?$/.test(location.pathname) || new URLSearchParams(location.search).has('slug'))) {
     let visitor=localStorage.getItem('sanches-visitor-id');
     if(!visitor){visitor=crypto.randomUUID();localStorage.setItem('sanches-visitor-id',visitor)}
-    const slug=decodeURIComponent(location.pathname.split('/').filter(Boolean).pop());
+    const slug=new URLSearchParams(location.search).get('slug')||decodeURIComponent(location.pathname.split('/').filter(Boolean).pop());
     window.APP.db.rpc('record_post_view',{p_slug:slug,p_visitor_id:visitor});
   }
 })();
