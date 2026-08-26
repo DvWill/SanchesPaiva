@@ -18,4 +18,10 @@
     },
     fallbackImage: '/assets/og-sanches-paiva.svg'
   };
+  if (ready && /^\/blog\/[^/]+\/?$/.test(location.pathname)) {
+    let visitor=localStorage.getItem('sanches-visitor-id');
+    if(!visitor){visitor=crypto.randomUUID();localStorage.setItem('sanches-visitor-id',visitor)}
+    const slug=decodeURIComponent(location.pathname.split('/').filter(Boolean).pop());
+    window.APP.db.rpc('record_post_view',{p_slug:slug,p_visitor_id:visitor});
+  }
 })();

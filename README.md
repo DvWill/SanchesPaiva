@@ -10,7 +10,7 @@ Site estático em HTML, CSS e JavaScript, com blog e painel editorial conectados
 
 ## Configuração do Supabase
 
-1. Crie um projeto Supabase e execute `supabase/migration.sql` no SQL Editor.
+1. Crie um projeto Supabase e execute `supabase/migration.sql` no SQL Editor. Se já usava a versão anterior, execute somente `supabase/002_post_metrics.sql` para adicionar métricas e o contador protegido.
 2. Em Authentication > Users, crie o primeiro usuário manualmente com e-mail confirmado. Não existe cadastro público.
 3. No SQL Editor, execute apenas para esse usuário: `insert into public.admins(user_id) select id from auth.users where email='EMAIL_DO_ADMIN';`.
 4. Copie a Project URL e a chave pública `anon` para `supabaseUrl` e `supabaseAnonKey` em `data.js`. Nunca use a chave `service_role` no site.
