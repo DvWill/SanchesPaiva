@@ -1,49 +1,33 @@
-const http = require('http');
-const fs = require('fs');
-const path = require('path');
-
-const root = __dirname;
-const port = 3000;
-const mimeTypes = {
-  '.html': 'text/html; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.js': 'text/javascript; charset=utf-8',
-  '.svg': 'image/svg+xml',
-  '.webp': 'image/webp',
-  '.avif': 'image/avif',
-  '.png': 'image/png',
-  '.jpg': 'image/jpeg',
-  '.jpeg': 'image/jpeg'
-};
-
-http.createServer((request, response) => {
-  const requestPath = decodeURIComponent(request.url.split('?')[0]);
-  const routes = {
-    '/': 'index.html', '/blog': 'blog.html', '/admin': 'admin/index.html',
-    '/admin/login': 'admin/login.html', '/admin/noticias/nova': 'admin/editor.html'
-  };
-  let relativePath = routes[requestPath] || requestPath.replace(/^\/+/, '');
-  if (/^\/blog\/[^/]+\/?$/.test(requestPath)) relativePath = 'post.html';
-  if (/^\/admin\/noticias\/[^/]+\/editar\/?$/.test(requestPath)) relativePath = 'admin/editor.html';
-  const filePath = path.resolve(root, relativePath);
-
-  if (!filePath.startsWith(root + path.sep) && filePath !== path.join(root, 'index.html')) {
-    response.writeHead(403).end('Acesso negado');
-    return;
-  }
-
-  fs.stat(filePath, (statError, stats) => {
-    if (statError || !stats.isFile()) {
-      response.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' }).end('Arquivo não encontrado');
-      return;
-    }
-
-    response.writeHead(200, {
-      'Content-Type': mimeTypes[path.extname(filePath).toLowerCase()] || 'application/octet-stream',
-      'Cache-Control': 'no-cache'
-    });
-    fs.createReadStream(filePath).pipe(response);
-  });
-}).listen(port, '127.0.0.1', () => {
-  console.log(`Site disponível em http://localhost:${port}`);
-});
+require('dotenv').config();
+const express=require('express'),path=require('path'),crypto=require('crypto'),bcrypt=require('bcryptjs'),multer=require('multer'),fs=require('fs');
+const {Pool}=require('pg');
+const app=express(),root=__dirname,port=Number(process.env.PORT||3000);
+const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:{rejectUnauthorized:true}});
+const upload=multer({storage:multer.memoryStorage(),limits:{fileSize:8*1024*1024,files:12},fileFilter:(_r,f,cb)=>cb(null,['image/jpeg','image/png','image/webp','image/avif'].includes(f.mimetype))});
+app.use(express.json({limit:'1mb'}));
+const cookies=req=>Object.fromEntries((req.headers.cookie||'').split(';').filter(Boolean).map(x=>{const i=x.indexOf('=');return[x.slice(0,i).trim(),decodeURIComponent(x.slice(i+1))]}));
+const hash=t=>crypto.createHash('sha256').update(t).digest('hex');
+const fields=['title','slug','excerpt','content','cover_url','cover_alt','category','tags','gallery','status','featured','source_url','seo_title','seo_description','published_at'];
+async function requireAdmin(req,res,next){try{const token=cookies(req).admin_session;if(!token)return res.status(401).json({error:'Não autenticado.'});const {rows}=await pool.query('select a.id,a.email from admin_sessions s join admins a on a.id=s.admin_id where s.token_hash=$1 and s.expires_at>now()',[hash(token)]);if(!rows[0])return res.status(401).json({error:'Sessão expirada.'});req.admin=rows[0];next()}catch(e){next(e)}}
+app.get('/api/health',async(_q,res,next)=>{try{await pool.query('select 1');res.json({ok:true})}catch(e){next(e)}});
+app.get('/api/posts',async(req,res,next)=>{try{if(req.query.status!=='published')return requireAdmin(req,res,async()=>{const {rows}=await pool.query('select * from posts order by created_at desc');res.json(rows)});const {rows}=await pool.query("select * from posts where status='published' and published_at<=now() order by published_at desc");res.json(rows)}catch(e){next(e)}});
+app.get('/api/posts/:value',async(req,res,next)=>{try{const pub=req.query.public==='1',value=req.params.value,selector=/^[0-9a-f-]{36}$/i.test(value)?'id':'slug';const send=async()=>{const {rows}=await pool.query(`select * from posts where ${selector}=$1${pub?" and status='published' and published_at<=now()":''}`,[value]);if(!rows[0])return res.status(404).json({error:'Notícia não encontrada.'});res.json(rows[0])};if(pub)return send();return requireAdmin(req,res,send)}catch(e){next(e)}});
+app.post('/api/posts/:slug/view',async(req,res,next)=>{try{await pool.query("update posts set views_count=views_count+1 where slug=$1 and status='published'",[req.params.slug]);res.status(204).end()}catch(e){next(e)}});
+app.post('/api/auth/login',async(req,res,next)=>{try{const {email,password}=req.body||{},{rows}=await pool.query('select * from admins where lower(email)=lower($1)',[email||'']);if(!rows[0]||!await bcrypt.compare(password||'',rows[0].password_hash))return res.status(401).json({error:'E-mail ou senha inválidos.'});const token=crypto.randomBytes(32).toString('base64url');await pool.query("insert into admin_sessions(admin_id,token_hash,expires_at) values($1,$2,now()+interval '7 days')",[rows[0].id,hash(token)]);res.setHeader('Set-Cookie',`admin_session=${token}; HttpOnly; SameSite=Strict; Path=/; Max-Age=604800${process.env.NODE_ENV==='production'?'; Secure':''}`);res.json({email:rows[0].email})}catch(e){next(e)}});
+app.get('/api/auth/session',requireAdmin,(req,res)=>res.json(req.admin));
+app.post('/api/auth/logout',async(req,res,next)=>{try{const token=cookies(req).admin_session;if(token)await pool.query('delete from admin_sessions where token_hash=$1',[hash(token)]);res.setHeader('Set-Cookie','admin_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0');res.status(204).end()}catch(e){next(e)}});
+app.post('/api/uploads',requireAdmin,upload.array('images',12),async(req,res,next)=>{try{if(!req.files?.length)return res.status(400).json({error:'Selecione uma imagem válida.'});const urls=[];for(const f of req.files){const {rows}=await pool.query('insert into post_images(mime_type,data) values($1,$2) returning id',[f.mimetype,f.buffer]);urls.push(`/api/images/${rows[0].id}`)}res.status(201).json({urls})}catch(e){next(e)}});
+app.get('/api/images/:id',async(req,res,next)=>{try{const {rows}=await pool.query('select mime_type,data from post_images where id=$1',[req.params.id]);if(!rows[0])return res.status(404).end();res.set({'Content-Type':rows[0].mime_type,'Cache-Control':'public,max-age=31536000,immutable'}).send(rows[0].data)}catch(e){next(e)}});
+function normalize(body){const p={};for(const k of fields)p[k]=body[k]??null;p.tags=Array.isArray(p.tags)?p.tags:[];p.gallery=Array.isArray(p.gallery)?p.gallery:[];p.featured=Boolean(p.featured);p.status=p.status==='published'?'published':'draft';if(p.status==='published'&&!p.published_at)p.published_at=new Date().toISOString();return p}
+app.post('/api/posts',requireAdmin,async(req,res,next)=>{try{const p=normalize(req.body),vals=fields.map(k=>['tags','gallery'].includes(k)?JSON.stringify(p[k]):p[k]);const {rows}=await pool.query(`insert into posts(${fields.join(',')},created_by) values(${fields.map((_,i)=>'$'+(i+1)).join(',')},$${fields.length+1}) returning *`,[...vals,req.admin.id]);res.status(201).json(rows[0])}catch(e){next(e)}});
+app.put('/api/posts/:id',requireAdmin,async(req,res,next)=>{try{const p=normalize(req.body),vals=fields.map(k=>['tags','gallery'].includes(k)?JSON.stringify(p[k]):p[k]),sets=fields.map((k,i)=>`${k}=$${i+1}`).join(',');const {rows}=await pool.query(`update posts set ${sets},updated_at=now() where id=$${fields.length+1} returning *`,[...vals,req.params.id]);if(!rows[0])return res.status(404).json({error:'Notícia não encontrada.'});res.json(rows[0])}catch(e){next(e)}});
+app.patch('/api/posts/:id/status',requireAdmin,async(req,res,next)=>{try{const status=req.body.status==='published'?'published':'draft',{rows}=await pool.query("update posts set status=$1,published_at=case when $1='published' then coalesce(published_at,now()) else published_at end,updated_at=now() where id=$2 returning *",[status,req.params.id]);res.json(rows[0])}catch(e){next(e)}});
+app.delete('/api/posts/:id',requireAdmin,async(req,res,next)=>{try{await pool.query('delete from posts where id=$1',[req.params.id]);res.status(204).end()}catch(e){next(e)}});
+for(const [route,file] of Object.entries({'/':'index.html','/blog':'blog.html','/admin':'admin/index.html','/admin/login':'admin/login.html','/admin/noticias/nova':'admin/editor.html'}))app.get(route,(_q,res)=>res.sendFile(path.join(root,file)));
+app.get('/blog/:slug',(_q,res)=>res.sendFile(path.join(root,'post.html')));app.get('/admin/noticias/:id/editar',(_q,res)=>res.sendFile(path.join(root,'admin/editor.html')));
+app.use((req,res,next)=>/\/(?:server\.js|package(?:-lock)?\.json|database|tests\.js|build\.js|\.env)/.test(req.path)?res.status(404).end():next());
+app.use(express.static(root,{index:false,cacheControl:false,dotfiles:'ignore'}));
+app.use((err,_q,res,_n)=>{console.error(err);if(err.code==='23505')return res.status(409).json({error:'Este slug já está em uso.'});res.status(err.status||500).json({error:err.message||'Erro interno.'})});
+async function start(){if(!process.env.DATABASE_URL)throw new Error('DATABASE_URL não configurada no .env');await pool.query(fs.readFileSync(path.join(root,'database','schema.sql'),'utf8'));if(process.env.ADMIN_EMAIL&&process.env.ADMIN_PASSWORD){const passwordHash=await bcrypt.hash(process.env.ADMIN_PASSWORD,12);await pool.query('insert into admins(email,password_hash) values($1,$2) on conflict(email) do nothing',[process.env.ADMIN_EMAIL,passwordHash])}app.listen(port,'127.0.0.1',()=>console.log(`Site disponível em http://localhost:${port}`))}
+if(require.main===module)start().catch(e=>{console.error('Falha ao iniciar:',e.message);process.exit(1)});
+module.exports=app;
