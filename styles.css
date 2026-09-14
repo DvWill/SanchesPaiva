@@ -99,4 +99,10 @@ button { touch-action:manipulation; }
 .community-character.is-changing{opacity:0;transform:translateY(12px) scale(.96)}
 .community-character[data-reaction="character-point.png"]{transform:scaleX(-1)}
 .community-character[data-reaction="character-point.png"].is-changing{transform:translateY(12px) scale(.96) scaleX(-1)}
+.community-character-link{position:fixed;z-index:20;right:clamp(12px,4vw,58px);bottom:0;display:block;width:clamp(150px,19vw,285px);max-height:42vh}
+.community-character-link .community-character{position:static;width:100%;max-height:42vh;pointer-events:auto}
 @media(max-width:560px){.community-character{right:4px;width:clamp(118px,35vw,180px);max-height:32vh}}
+/* Perfil oficial centralizado para destacar o acesso ao Instagram. */
+.instagram .insta-grid{display:block;max-width:980px;margin-inline:auto}
+.instagram .insta-label{align-items:center;text-align:center;margin-bottom:28px}
+.instagram .insta-card{max-width:760px;margin-inline:auto}
