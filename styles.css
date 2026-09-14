@@ -120,3 +120,4 @@ button { touch-action:manipulation; }
 .instagram .insta-grid{display:block;max-width:980px;margin-inline:auto}
 .instagram .insta-label{align-items:center;text-align:center;margin-bottom:28px}
 .instagram .insta-card{max-width:760px;margin-inline:auto}
+.agency-credit{display:inline-flex;align-items:center;gap:10px;color:#9dafbb;text-decoration:none}.agency-credit span{font-size:.68rem}.agency-credit img{width:150px;height:auto;display:block;background:white;padding:3px}.agency-credit:hover{color:white}
