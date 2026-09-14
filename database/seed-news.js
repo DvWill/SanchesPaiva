@@ -1,5 +1,6 @@
 require('dotenv').config();
 const {Pool}=require('pg');
+const editorialPosts=require('../editorial-posts.js');
 const pool=new Pool({connectionString:process.env.DATABASE_URL,ssl:{rejectUnauthorized:true}});
 const posts=[
   {title:'Experiência e preparo para transformar boas ideias em resultados',slug:'experiencia-e-preparo-para-transformar-ideias-em-resultados',excerpt:'A trajetória de Sanches Paiva em quatro funções no Executivo reúne gestão, articulação, desenvolvimento econômico e captação de recursos.',content:`## Uma trajetória construída na gestão pública
@@ -28,17 +29,8 @@ Criar oportunidades exige articulação, conhecimento da realidade local e diál
 O Feirão integra um conjunto de mais de 50 programas e projetos desenvolvidos ao longo da trajetória de Sanches Paiva na gestão pública. Cada iniciativa reforça o compromisso com uma Cidade Ocidental que valoriza seus trabalhadores, seus empreendedores e o potencial de sua população.
 
 > Desenvolvimento econômico é criar caminhos para quem trabalha e empreende.`,cover_url:'/assets/photos/album-do-mandato.png',cover_alt:'Álbum do Mandato Sanches Paiva em Campo',category:'Juventude e oportunidades',tags:['emprego','renda','oportunidades','desenvolvimento econômico'],featured:true},
-  {title:'Ocidental Gastro movimenta comércio, cultura e turismo',slug:'ocidental-gastro-movimenta-comercio-cultura-e-turismo',excerpt:'Projeto valoriza empreendedores, fortalece a economia criativa e divulga as vocações culturais e turísticas de Cidade Ocidental.',content:`## Economia criativa em movimento
-
-O **Ocidental Gastro** reúne comércio, empreendedorismo, cultura e turismo em uma iniciativa voltada à valorização da economia local. O projeto reconhece que a gastronomia pode gerar oportunidades, atrair público e fortalecer a identidade de Cidade Ocidental.
-
-Ao dar visibilidade a negócios e iniciativas locais, o evento cria um ambiente favorável para novos contatos, circulação de renda e divulgação do trabalho de quem empreende no município.
-
-## Identidade que também gera desenvolvimento
-
-O desenvolvimento econômico pode caminhar junto com a preservação das tradições. A valorização do turismo religioso, da cultura e de produtos ligados à história local — como o tradicional doce de marmelo — ajuda a mostrar o que Cidade Ocidental tem de único.
-
-Essa combinação de economia criativa, turismo e identidade amplia as possibilidades para empreendedores e fortalece o sentimento de pertencimento da comunidade. É trabalho que movimenta a cidade e transforma suas vocações em oportunidades.`,cover_url:'/assets/photos/cidade-ocidental-hero.webp',cover_alt:'Vista de Cidade Ocidental',category:'Cultura e turismo',tags:['Ocidental Gastro','turismo','cultura','empreendedorismo'],featured:false},
+  editorialPosts['3-feirao-do-emprego-supera-2300-atendimentos'],
+  editorialPosts['ocidental-gastro-movimenta-comercio-cultura-e-turismo'],
   {title:'Licença-paternidade de 20 dias fortalece famílias de servidores municipais',slug:'licenca-paternidade-20-dias-fortalece-familias',excerpt:'Proposta amplia de cinco para 20 dias a licença-paternidade dos servidores públicos municipais, apoiando mães e bebês.',content:`## Mais presença nos primeiros dias de vida
 
 A ampliação da licença-paternidade de **cinco para 20 dias** para os servidores públicos municipais coloca a valorização das famílias no centro da atuação legislativa.
