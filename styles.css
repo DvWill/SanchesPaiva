@@ -423,3 +423,17 @@ body :where(h1,h2,h3,h4,h5,h6){
   -webkit-hyphens:none!important;
   hyphens:none!important;
 }
+
+/* Destaque da mensagem central: mais leve, maior, itálico e azul. */
+.position blockquote em{
+  font-family:var(--body);
+  font-size:1.18em;
+  font-style:italic;
+  font-weight:400;
+  color:#35c7ff;
+  letter-spacing:-.035em;
+  text-shadow:
+     0 0 5px rgba(53,199,255,.9),
+     0 0 14px rgba(8,122,165,.85),
+     0 0 30px rgba(8,122,165,.6);
+}

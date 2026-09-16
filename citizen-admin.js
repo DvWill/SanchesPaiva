@@ -68,7 +68,10 @@
       try {
         const requests = await APP.api(`/api/admin/citizen-requests?${parameters}`);
         draw(requests);
-        document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${requests.length}</strong>Encontradas</div><div class="stat"><strong>${requests.filter((item) => item.status === 'Recebida').length}</strong>Recebidas</div><div class="stat"><strong>${requests.filter((item) => ['Em triagem','Em andamento','Encaminhada ao órgão responsável'].includes(item.status)).length}</strong>Em atendimento</div><div class="stat"><strong>${requests.filter((item) => item.status === 'Concluída').length}</strong>Concluídas</div>`;
+        const received = requests.filter((item) => item.status === 'Recebida').length;
+        const inProgress = requests.filter((item) => ['Em triagem','Em andamento','Encaminhada ao órgão responsável'].includes(item.status)).length;
+        const completed = requests.filter((item) => item.status === 'Concluída').length;
+        document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${requests.length}</strong>${requests.length === 1 ? 'Encontrada' : 'Encontradas'}</div><div class="stat"><strong>${received}</strong>${received === 1 ? 'Recebida' : 'Recebidas'}</div><div class="stat"><strong>${inProgress}</strong>Em atendimento</div><div class="stat"><strong>${completed}</strong>${completed === 1 ? 'Concluída' : 'Concluídas'}</div>`;
         message('');
       } catch (error) {
         list.setAttribute('aria-busy', 'false');
@@ -112,7 +115,7 @@
     addDetail(data, 'Comunicações autorizadas', request.marketing_consent ? 'Sim' : 'Não');
     addDetail(data, 'Registrada em', formatDate(request.created_at));
     addDetail(data, 'Última atualização', formatDate(request.updated_at));
-    addDetail(data, 'Encaminhada para', request.forwarded_to || 'Ainda não informado');
+    addDetail(data, 'Encaminhada a', request.forwarded_to || 'Ainda não informado');
     updateForm.elements.status.value = request.status;
     updateForm.elements.forwarded_to.value = request.forwarded_to || '';
     const history = document.querySelector('#demand-history');

@@ -265,7 +265,7 @@
               <p class="fe-section-label">Impacto direto</p>
               <h2 id="fe-results-title">Resultados para o município</h2>
               ${s.results.map(text=>`<p>${escape(text)}</p>`).join('')}
-              <p class="fe-results-note">Conexões criadas durante o evento ampliaram o acesso da população a emprego, renda e serviços públicos.</p>
+              <p class="fe-results-note">As conexões criadas durante o evento ampliaram o acesso da população ao emprego, à renda e aos serviços públicos.</p>
             </div>
           </div>
         </section>

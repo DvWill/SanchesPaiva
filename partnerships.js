@@ -23,7 +23,7 @@
         {
           id: 'castracao-animal',
           category: 'Bem-estar animal',
-          title: 'Castração Animal',
+          title: 'Castração animal',
           summary: 'A parceria garantiu mais de 600 castrações gratuitas de cães e gatos, promovendo saúde pública, controle populacional e bem-estar animal.',
           benefits: 'Atendimento gratuito, prevenção em saúde pública e apoio ao controle populacional de cães e gatos.',
           image: null,
@@ -151,7 +151,7 @@
       element('span', 'partnership-result__category', result.category),
       element('strong', 'partnership-result__title', result.title),
       element('span', 'partnership-result__summary', result.summary),
-      element('span', 'partnership-result__link', 'Saiba mais  →')
+      element('span', 'partnership-result__link', 'Saiba mais →')
     );
     card.append(media, body);
     card.addEventListener('click', () => openDialog(partner, result, card));

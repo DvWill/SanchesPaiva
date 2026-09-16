@@ -7,7 +7,7 @@ const posts=[
 
 Antes de chegar à Câmara Municipal, Sanches Paiva acumulou experiência em quatro funções no Executivo de Cidade Ocidental. A passagem por diferentes áreas da administração ajudou a formar uma visão ampla sobre as prioridades do município e os caminhos necessários para transformar projetos em resultados.
 
-Como **chefe de Gabinete**, acompanhou de perto a gestão e as demandas da cidade. Na função de **secretário municipal de Governo**, atuou na articulação e no acompanhamento da administração municipal.
+Como **chefe de gabinete**, acompanhou de perto a gestão e as demandas da cidade. Na função de **secretário municipal de Governo**, atuou na articulação e no acompanhamento da administração municipal.
 
 ## Desenvolvimento e oportunidades
 
@@ -42,15 +42,15 @@ Os primeiros dias após o nascimento de um bebê exigem cuidado, adaptação e a
 A medida também amplia o suporte às mães em uma fase de grandes mudanças físicas e emocionais. A presença do pai contribui para uma rede de cuidado mais próxima e dá à família mais tempo para organizar sua nova rotina.
 
 Políticas públicas voltadas às famílias produzem efeitos que alcançam toda a comunidade. A proposta traduz uma das bandeiras do mandato: fortalecer vínculos, promover cuidado e garantir mais dignidade para as pessoas.`,cover_url:'/assets/photos/sanches-paiva-perfil.png',cover_alt:'Sanches Paiva, vereador de Cidade Ocidental',category:'Projetos e leis',tags:['licença-paternidade','família','servidores públicos','lei'],featured:true},
-  {title:'Proteção da Bandeira e do Brasão preserva a identidade de Cidade Ocidental',slug:'protecao-bandeira-brasao-identidade-cidade-ocidental',excerpt:'Proteção jurídica dos símbolos municipais reconhece 31 anos de emancipação e reforça o respeito à história da cidade.',content:`## Símbolos que contam a história da cidade
+  {title:'Proteção da bandeira e do brasão preserva a identidade de Cidade Ocidental',slug:'protecao-bandeira-brasao-identidade-cidade-ocidental',excerpt:'Proteção jurídica dos símbolos municipais reconhece 31 anos de emancipação e reforça o respeito à história da cidade.',content:`## Símbolos que contam a história da cidade
 
-A Bandeira e o Brasão representam a trajetória, os valores e o sentimento de pertencimento da população de Cidade Ocidental. A criação de proteção jurídica para esses símbolos preserva a identidade do município e reconhece seus **31 anos de emancipação**.
+A bandeira e o brasão representam a trajetória, os valores e o sentimento de pertencimento da população de Cidade Ocidental. A criação de uma proteção jurídica para esses símbolos preserva a identidade do município e reconhece seus **31 anos de emancipação**.
 
 Proteger o patrimônio municipal significa garantir que referências importantes da história da cidade sejam respeitadas e transmitidas às próximas gerações.
 
 ## Respeito aos pioneiros e compromisso com o futuro
 
-Para Sanches Paiva, essa responsabilidade também está ligada à própria história familiar. Neto do pioneiro Francisco “Chico” Paiva, um dos cofundadores e ex-presidente do MDB local, o vereador cresceu próximo a uma trajetória de serviço à comunidade.
+Para Sanches Paiva, essa responsabilidade também está ligada à própria história familiar. Neto do pioneiro Francisco “Chico” Paiva, um dos cofundadores do MDB local e ex-presidente da legenda no município, o vereador cresceu próximo a uma trajetória de serviço à comunidade.
 
 Esse legado não é apenas uma herança familiar. Ele representa respeito por quem ajudou a construir as bases políticas, estruturais e sociais de Cidade Ocidental. Preservar a memória do município é reconhecer os pioneiros e, ao mesmo tempo, construir o futuro com consciência das próprias raízes.`,cover_url:'/assets/photos/sanches-e-chico-paiva.png',cover_alt:'Sanches Paiva ao lado de seu avô, Chico Paiva, na Câmara Municipal',category:'Projetos e leis',tags:['história','identidade','Bandeira','Brasão','Cidade Ocidental'],featured:false}
 ];

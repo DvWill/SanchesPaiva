@@ -58,7 +58,7 @@ app.post('/api/citizen/lookup',async(req,res)=>{
     if(!PROTOCOL_PATTERN.test(protocol)||!phone)return res.status(400).json({error:'Informe um protocolo e um telefone válidos.'});
     if(!await consumeRateLimit(req,'lookup',phone,12,15))return res.status(429).json({error:'Muitas consultas em pouco tempo. Aguarde alguns minutos e tente novamente.'});
     const {rows}=await pool.query(`select ${publicRequestFields} from citizen_requests where protocol=$1 and phone_normalized=$2`,[protocol,phone]);
-    if(!rows[0])return res.status(404).json({error:'Demanda não encontrada. Confira o protocolo e o telefone informado.'});
+    if(!rows[0])return res.status(404).json({error:'Demanda não encontrada. Confira o protocolo e o telefone informados.'});
     const request=rows[0];
     const history=await pool.query('select status,public_message,created_at from citizen_request_updates where request_id=(select id from citizen_requests where protocol=$1 and phone_normalized=$2) and is_public=true order by created_at',[protocol,phone]);
     res.json({protocol:request.protocol,category:displayCategory(request),neighborhood:request.neighborhood,created_at:request.created_at,status:request.status,updated_at:request.updated_at,public_response:request.public_response||null,history:history.rows});

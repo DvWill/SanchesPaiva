@@ -65,5 +65,5 @@ create policy "admins upload post images" on storage.objects for insert to authe
 create policy "admins update post images" on storage.objects for update to authenticated using (bucket_id='post-images' and public.is_admin()) with check (bucket_id='post-images' and public.is_admin());
 create policy "admins delete post images" on storage.objects for delete to authenticated using (bucket_id='post-images' and public.is_admin());
 
--- Execute depois de criar o primeiro usuario pelo painel Auth do Supabase:
+-- Execute depois de criar o primeiro usuário pelo painel Auth do Supabase:
 -- insert into public.admins(user_id) select id from auth.users where email='email-do-admin@dominio.com';

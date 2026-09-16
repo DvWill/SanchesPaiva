@@ -13,10 +13,10 @@ const EDITORIAL_POSTS = (() => {
     ],
     culture: [
       'A programação também contou com atrações musicais, espaço infantil e tirolesa, oferecendo atividades para diferentes públicos.',
-      'No sábado (08), a música ficou por conta da banda TRIPOP e da dupla Jhonny & Rahony. No domingo, a programação começou ao meio-dia e recebeu Riko Fernandes, Anna Martins, Roni & Ricardo e Marco Sales & Joel.'
+      'No sábado (8), a música ficou por conta da banda TRIPOP e da dupla Jhonny & Rahony. No domingo, a programação começou ao meio-dia e recebeu Riko Fernandes, Anna Martins, Roni & Ricardo e Marco Sales & Joel.'
     ],
     organization: [
-      'A realização do Ocidental Gastrô mobilizou diferentes áreas do poder público e instituições parceiras. A integração entre Governo de Goiás, Instituto Idheias e Prefeitura Municipal foi fundamental para viabilizar a estrutura, a programação e o suporte oferecido aos participantes e ao público.',
+      'A realização do Ocidental Gastrô mobilizou diferentes áreas do poder público e instituições parceiras. A integração entre o Governo de Goiás, o Instituto Idheias e a Prefeitura Municipal foi fundamental para viabilizar a estrutura, a programação e o suporte oferecido aos participantes e ao público.',
       'As secretarias municipais e demais equipes envolvidas trabalharam na preparação do espaço, organização dos expositores, segurança, limpeza, atendimento, programação cultural e acolhimento dos visitantes.'
     ],
     impact: [
@@ -26,7 +26,7 @@ const EDITORIAL_POSTS = (() => {
     closing: 'O Ocidental Gastrô encerrou sua primeira edição mostrando a força da culinária, da cultura e do empreendedorismo de Cidade Ocidental. A combinação de sabores, música, lazer e turismo transformou o Lago Jacob em um espaço de celebração da identidade local.'
   };
   const images = [
-    {url:'/assets/images/ocidental-gastro/cozinha-panela-gigante.webp',alt:'Equipe de cozinha diante de uma grande panela com prato preparado durante o Ocidental Gastrô',width:2000,height:1500,caption:'Gastronomia e trabalho em equipe marcaram a programação no Lago Jacob.'},
+    {url:'/assets/images/ocidental-gastro/cozinha-panela-gigante.webp',alt:'Equipe de cozinha diante de uma grande panela com um prato preparado durante o Ocidental Gastrô',width:2000,height:1500,caption:'Gastronomia e trabalho em equipe marcaram a programação no Lago Jacob.'},
     {url:'/assets/images/ocidental-gastro/preparo-panela-noite.webp',alt:'Participantes ao lado de uma grande panela durante o preparo de comida à noite',width:1400,height:1867,caption:'O preparo dos pratos também integrou a experiência do festival.'},
     {url:'/assets/images/ocidental-gastro/visitantes-panela-gastronomica.webp',alt:'Grupo de participantes reunido ao redor de uma grande panela no evento',width:1400,height:1050,caption:'Participantes reunidos em torno de uma das experiências gastronômicas.'},
     {url:'/assets/images/ocidental-gastro/palco-evento.webp',alt:'Grupo reunido no palco montado para a programação cultural do Ocidental Gastrô',width:1400,height:1050,caption:'O palco recebeu a programação musical e cultural do festival.'},
@@ -38,7 +38,7 @@ const EDITORIAL_POSTS = (() => {
     {url:'/assets/images/ocidental-gastro/expositora-parada-sabor.webp',alt:'Expositora em uma barraca de lanches preparada para atender o público',width:1400,height:647,caption:'A estrutura reuniu diferentes opções de alimentação.'},
     {url:'/assets/images/ocidental-gastro/expositoras-doces.webp',alt:'Expositoras apresentam doces embalados em um estande do evento',width:1400,height:647,caption:'Doces e produtos artesanais também integraram a feira.'},
     {url:'/assets/images/ocidental-gastro/expositores-gastronomia.webp',alt:'Equipe de um estabelecimento gastronômico em seu estande',width:1400,height:647,caption:'Os participantes divulgaram seus cardápios e serviços.'},
-    {url:'/assets/images/ocidental-gastro/expositores-gastronomia-cardapio.webp',alt:'Expositores mostram o cardápio do Ocidental Gastrô dentro de uma tenda',width:1400,height:647,caption:'O circuito valorizou quem produz e empreende na cidade.'},
+    {url:'/assets/images/ocidental-gastro/expositores-gastronomia-cardapio.webp',alt:'Expositores mostram o cardápio do Ocidental Gastrô em uma tenda',width:1400,height:647,caption:'O circuito valorizou quem produz e empreende na cidade.'},
     {url:'/assets/images/ocidental-gastro/equipe-banca-sabor.webp',alt:'Equipe de cozinha reunida em uma tenda gastronômica',width:1400,height:647,caption:'Profissionais da gastronomia movimentaram a economia local.'},
     {url:'/assets/images/ocidental-gastro/equipe-acaraje.webp',alt:'Equipe de um estande de acarajé reunida no festival',width:1400,height:647,caption:'Sabores diversos representaram a cidade no evento.'},
     {url:'/assets/images/ocidental-gastro/equipe-organizacao-centro-artesao.webp',alt:'Equipe de organização reunida no Centro de Convivência e Capacitação de Artesãos',width:1400,height:1050,caption:'Instituições e equipes municipais atuaram em parceria.'},
@@ -103,7 +103,7 @@ const EDITORIAL_POSTS = (() => {
 Object.assign(EDITORIAL_POSTS, (() => {
   const slug = '3-feirao-do-emprego-supera-2300-atendimentos';
   const title = '3º Feirão do Emprego supera 2,3 mil atendimentos em Cidade Ocidental';
-  const excerpt = 'Realizada no Balão do Friburgo, a iniciativa aproximou trabalhadores e empresas e ampliou o acesso da população a qualificação profissional, crédito e serviços públicos.';
+  const excerpt = 'Realizada no Balão do Friburgo, a iniciativa aproximou trabalhadores e empresas e ampliou o acesso da população à qualificação profissional, ao crédito e aos serviços públicos.';
   const sections = {
     intro: [
       'A terceira edição do Feirão do Emprego movimentou o Balão do Friburgo nos dias 30 de novembro e 1º de dezembro de 2023. Durante os dois dias de programação, milhares de moradores buscaram oportunidades profissionais, capacitação e diferentes serviços oferecidos à comunidade.',
@@ -114,7 +114,7 @@ Object.assign(EDITORIAL_POSTS, (() => {
       'Empresas e candidatos puderam trocar informações, realizar entrevistas e participar de processos de recrutamento em um único local. Para quem buscava o primeiro emprego ou uma recolocação profissional, o Feirão representou uma oportunidade de contato direto com o mercado de trabalho.'
     ],
     qualification: [
-      'Além da intermediação de vagas, o público teve acesso a inscrições em cursos gratuitos de capacitação e qualificação profissional oferecidos pelo Colégio Tecnológico do Estado de Goiás, o Cotec.',
+      'Além da intermediação de vagas, o público teve acesso a inscrições em cursos gratuitos de capacitação e qualificação profissional oferecidos pelo Colégio Tecnológico do Estado de Goiás (Cotec).',
       'A programação também contou com orientações do Sebrae, atendimento da Goiás Fomento e suporte da Sala do Empreendedor. A proposta foi oferecer caminhos tanto para quem procurava emprego quanto para quem desejava abrir, fortalecer ou ampliar um pequeno negócio.',
       'Entre as áreas de capacitação divulgadas estavam culinária, panificação, massas e molhos, tortas salgadas, cabeleireiro, escovista e barbeiro.'
     ],
@@ -131,7 +131,7 @@ Object.assign(EDITORIAL_POSTS, (() => {
     closing: 'A terceira edição do Feirão do Emprego mostrou como ações integradas podem ampliar o acesso da população ao mercado de trabalho. Ao reunir vagas, capacitação, crédito, empreendedorismo e serviços sociais no Balão do Friburgo, a iniciativa levou oportunidades para mais perto dos moradores e contribuiu para o desenvolvimento de Cidade Ocidental.'
   };
   const images = [
-    {url:'/assets/images/feirao-emprego/equipe-feirao.webp',alt:'Grupo de profissionais reunido sob a estrutura de entrada do 3º Feirão do Emprego',width:1600,height:1200,caption:'Equipes e instituições parceiras reunidas na estrutura do Feirão do Emprego.'},
+    {url:'/assets/images/feirao-emprego/equipe-feirao.webp',alt:'Grupo de profissionais reunido sob o pórtico de entrada do 3º Feirão do Emprego',width:1600,height:1200,caption:'Equipes e instituições parceiras reunidas na estrutura do Feirão do Emprego.'},
     {url:'/assets/images/feirao-emprego/entrada-feirao.webp',alt:'Entrada do Feirão do Emprego com fila de participantes e arco de balões verdes e laranjas',width:1600,height:1200,caption:'A estrutura recebeu moradores durante os dois dias de programação.'},
     {url:'/assets/images/feirao-emprego/publico-atendimentos.webp',alt:'Público sentado na área de espera montada para os atendimentos do Feirão do Emprego',width:1600,height:1200,caption:'Moradores aguardam atendimento na área preparada para o público.'},
     {url:'/assets/images/feirao-emprego/atendimento-servicos.webp',alt:'Equipes realizam atendimentos em computadores enquanto participantes aguardam no local',width:1600,height:1200,caption:'Serviços e orientações foram concentrados em uma mesma estrutura.'},
@@ -223,7 +223,7 @@ Object.assign(EDITORIAL_POSTS, (() => {
     ],
     balao: [
       'A Praça Nossa Senhora das Graças, conhecida popularmente como Balão da Santa, tornou-se um ponto de referência para quem vive ou passa por Cidade Ocidental. Localizado nas proximidades do lago, o espaço reúne simbolismo religioso, memória e identidade urbana.',
-      'A reforma da praça foi entregue em dezembro de 2023, em uma programação marcada por missa campal e pela consagração de Cidade Ocidental ao Imaculado Coração de Maria. A revitalização proporcionou um ambiente mais acolhedor para momentos de oração, encontros comunitários e visitação.',
+      'A reforma da praça foi entregue em dezembro de 2023, em uma programação marcada por uma missa campal e pela consagração de Cidade Ocidental ao Imaculado Coração de Maria. A revitalização proporcionou um ambiente mais acolhedor para momentos de oração, encontros comunitários e visitação.',
       'Mais do que um marco na paisagem, o Balão da Santa representa a presença da devoção mariana no cotidiano da população e funciona como um símbolo de boas-vindas para a cidade.'
     ],
     viaSacra: [
@@ -251,16 +251,16 @@ Object.assign(EDITORIAL_POSTS, (() => {
     {group:'balao',url:'/assets/media/turismo-religioso/balao-da-santa/balao-da-santa-02.webp',alt:'Participantes voltados para o monumento mariano durante celebração no Balão da Santa.',width:1200,height:1600,caption:'Momento de devoção diante do monumento mariano no Balão da Santa.'},
     {group:'balao',url:'/assets/media/turismo-religioso/balao-da-santa/balao-da-santa-03.webp',alt:'Sanches Paiva e participantes ao lado da placa de inauguração da Praça Nossa Senhora das Graças.',width:1200,height:1600,caption:'Sanches Paiva durante o registro da inauguração da Praça Nossa Senhora das Graças.'},
     {group:'balao',url:'/assets/media/turismo-religioso/balao-da-santa/balao-da-santa-04.webp',alt:'Sanches Paiva participa de leitura durante celebração religiosa ao ar livre.',width:1200,height:1600,caption:'Sanches Paiva durante a celebração que marcou a entrega da praça.'},
-    {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-01.webp',alt:'Sanches Paiva conversa com participante caracterizado para a representação da Via-Sacra.',width:1200,height:1600,caption:'Sanches Paiva junto a um participante da encenação da Via-Sacra.'},
+    {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-01.webp',alt:'Sanches Paiva conversa com um participante caracterizado para a representação da Via-Sacra.',width:1200,height:1600,caption:'Sanches Paiva ao lado de um participante da encenação da Via-Sacra.'},
     {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-02.webp',alt:'Cruz iluminada durante celebração e encenação da Via-Sacra.',width:900,height:1600,caption:'A cruz iluminada compõe uma das cenas da representação da Via-Sacra.'},
-    {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-03.webp',alt:'Sanches Paiva ao lado de participante caracterizado para a representação da Via-Sacra.',width:1200,height:1600,caption:'Sanches Paiva com participante caracterizado para a encenação religiosa.'},
+    {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-03.webp',alt:'Sanches Paiva ao lado de um participante caracterizado para a representação da Via-Sacra.',width:1200,height:1600,caption:'Sanches Paiva com um participante caracterizado para a encenação religiosa.'},
     {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-04.webp',alt:'Encenação de uma das estações da Via-Sacra em Cidade Ocidental, acompanhada pela comunidade.',width:462,height:1000,caption:'A comunidade acompanha uma das cenas representadas durante o percurso da Via-Sacra.'},
-    {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-05.webp',alt:'Sanches Paiva e participante ao lado do ator caracterizado para representar Jesus na Via-Sacra.',width:1200,height:1600,caption:'Registro com o participante que interpretou Jesus na representação da Via-Sacra.'},
-    {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-01.webp',alt:'Montagem com Sanches Paiva junto a uma imagem mariana e participantes da programação comunitária.',width:1084,height:1084,caption:'Sanches Paiva durante programação comunitária no Jardim da Imaculada.'},
+    {group:'viaSacra',url:'/assets/media/turismo-religioso/via-sacra/via-sacra-05.webp',alt:'Sanches Paiva e um participante ao lado do ator caracterizado para representar Jesus na Via-Sacra.',width:1200,height:1600,caption:'Registro com o participante que interpretou Jesus na representação da Via-Sacra.'},
+    {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-01.webp',alt:'Montagem com Sanches Paiva ao lado de uma imagem mariana e de participantes da programação comunitária.',width:1084,height:1084,caption:'Sanches Paiva durante a programação comunitária no Jardim da Imaculada.'},
     {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-02.webp',alt:'Montagem com encontros de Sanches Paiva e participantes em ambiente decorado para o Arraiá da Imaculada.',width:1084,height:1084,caption:'Convivência e encontros durante o Arraiá do Jardim da Imaculada.'},
     {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-03.webp',alt:'Montagem com famílias, participantes e Sanches Paiva durante o Arraiá do Jardim da Imaculada.',width:1084,height:1084,caption:'Famílias e comunidade reunidas na programação do Arraiá da Imaculada.'},
-    {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-04.webp',alt:'Sanches Paiva ao lado de religioso durante o Arraiá do Jardim da Imaculada.',width:1200,height:1600,caption:'Sanches Paiva durante programação comunitária no Jardim da Imaculada.'},
-    {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-05.webp',alt:'Sanches Paiva junto a uma imagem mariana em espaço decorado no Jardim da Imaculada.',width:1200,height:1600,caption:'Fé e tradição presentes na decoração do Arraiá do Jardim da Imaculada.'}
+    {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-04.webp',alt:'Sanches Paiva ao lado de um religioso durante o Arraiá do Jardim da Imaculada.',width:1200,height:1600,caption:'Sanches Paiva durante a programação comunitária no Jardim da Imaculada.'},
+    {group:'arraia',url:'/assets/media/turismo-religioso/arraia-da-imaculada/arraia-imaculada-05.webp',alt:'Sanches Paiva ao lado de uma imagem mariana em um espaço decorado no Jardim da Imaculada.',width:1200,height:1600,caption:'Fé e tradição presentes na decoração do Arraiá do Jardim da Imaculada.'}
   ];
   const content = [
     '## Fé que também movimenta a cultura e o turismo', ...sections.intro,
