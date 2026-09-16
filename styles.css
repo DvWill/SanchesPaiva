@@ -235,6 +235,22 @@ button { touch-action:manipulation; }
 @media(max-width:1100px){.citizen-nav-cta{display:none}.nav-shell>nav .citizen-nav-link{margin-top:8px;background:var(--aqua);color:var(--night);box-shadow:0 8px 20px rgba(21,196,180,.16)}.nav-shell>nav .citizen-nav-link:hover,.nav-shell>nav .citizen-nav-link:focus-visible,.nav-shell>nav .citizen-nav-link.active{background:#32d6c7;color:var(--night)}.nav-shell>nav .citizen-nav-link:after{content:"";width:8px;height:8px;margin-left:auto;border-radius:50%;background:#fff;box-shadow:0 0 0 5px rgba(255,255,255,.2);animation:citizen-pulse 2.1s infinite}.contact-copy{position:static}.contact-grid,.demand-lookup{grid-template-columns:minmax(220px,.7fr) minmax(0,1.3fr);gap:38px}}
 @media(max-width:720px){.contact-grid,.demand-lookup{grid-template-columns:1fr}.contact-copy h2{font-size:clamp(3.5rem,17vw,5.2rem)}.citizen-form{padding:24px 20px}.form-fields,.birthday-fields,.demand-lookup form,.lookup-summary{grid-template-columns:1fr}.birthday-fields{gap:22px}.demand-lookup{margin-top:70px;padding-top:50px}.demand-lookup form{padding:24px 20px}.demand-lookup form .btn{width:100%}.lookup-result{grid-column:auto}.dialog-actions{flex-direction:column}.dialog-actions>*{width:100%;justify-content:center}.citizen-dialog{padding:30px 22px}.citizen-dialog>strong{font-size:1.25rem}.community-character-link{pointer-events:none}}
 
+/* Marca Alô, Sanches: atalho externo à navbar e assinatura visual do formulário. */
+.header-layout{width:min(1370px,calc(100% - 32px));margin-inline:auto;display:flex;align-items:center;gap:12px}
+.header-layout .nav-shell{flex:1 1 0;min-width:0;width:auto;margin:0}
+.citizen-launcher{position:relative;flex:0 0 78px;width:78px;height:78px;display:block;border-radius:50%;filter:drop-shadow(0 10px 18px rgba(0,0,0,.28));transition:width .25s ease,height .25s ease,flex-basis .25s ease,transform .25s ease,filter .25s ease}
+.citizen-launcher::after{content:"";position:absolute;inset:7px;border-radius:50%;box-shadow:0 0 0 0 rgba(21,196,180,.48);animation:citizen-logo-pulse 2.4s infinite;pointer-events:none}
+.citizen-launcher img{width:100%;height:100%;object-fit:contain}
+.citizen-launcher:hover,.citizen-launcher:focus-visible{transform:translateY(-3px) scale(1.04);filter:drop-shadow(0 14px 22px rgba(0,0,0,.34))}
+.header.scrolled .citizen-launcher{flex-basis:68px;width:68px;height:68px}
+@keyframes citizen-logo-pulse{0%,60%,100%{box-shadow:0 0 0 0 rgba(21,196,180,.42)}80%{box-shadow:0 0 0 8px rgba(21,196,180,0)}}
+.contact-copy .alo-sanches__title{position:relative;width:clamp(320px,34vw,470px);max-width:100%;aspect-ratio:1;margin:0;background:url('assets/images/alo-sanches-icon.png') center/contain no-repeat;filter:drop-shadow(0 18px 30px rgba(3,24,43,.14));font-size:0;line-height:0}
+.contact-copy .alo-sanches__title span{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important}
+.alo-sanches__intro::before,.alo-sanches__intro::after{display:none}
+.contact-copy>.alo-sanches__description{margin-top:24px}
+@media(max-width:1000px){.header-layout{position:relative;width:min(calc(100% - 24px),1220px);gap:0}.header-layout .nav-shell{flex:1 1 auto;width:auto;margin:0}.citizen-launcher,.header.scrolled .citizen-launcher{position:absolute;z-index:1102;top:50%;right:66px;flex-basis:62px;width:62px;height:62px;transform:translateY(-50%)}.citizen-launcher:hover,.citizen-launcher:focus-visible{transform:translateY(calc(-50% - 3px)) scale(1.04)}}
+@media(max-width:720px){.citizen-launcher,.header.scrolled .citizen-launcher{flex-basis:58px;width:58px;height:58px}.contact-copy .alo-sanches__title{width:min(100%,390px);margin-inline:auto}.alo-sanches__eyebrow{justify-content:center}.contact-copy>.alo-sanches__description{margin-top:20px}}
+
 /* Alô, Sanches — composição editorial e formulário */
 .contact{overflow:hidden}
 .contact .alo-sanches__container{width:min(calc(100% - 48px),1280px);grid-template-columns:minmax(330px,.75fr) minmax(0,1.25fr);gap:clamp(56px,6vw,80px)}
