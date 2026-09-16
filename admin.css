@@ -24,3 +24,16 @@ dialog { max-height:85dvh;overscroll-behavior:contain; }
  .admin-title .btn,.editor-actions>.btn { width:100%; }
  .admin-header a:not(.brand) { min-height:44px;display:inline-flex;align-items:center; }
 }
+
+/* Gestão privada das demandas do Alô, Sanches. */
+.demand-stats{grid-template-columns:repeat(4,minmax(0,1fr))}
+.demand-filters{display:grid;grid-template-columns:minmax(220px,1.5fr) repeat(4,minmax(140px,1fr));gap:16px;align-items:end;margin-bottom:26px;padding:24px}
+.filter-actions{display:flex;gap:10px;grid-column:1/-1}
+.filter-actions button{min-height:44px;padding:10px 18px;border:1px solid #476575}
+.demand-list{display:grid;gap:10px}
+.demand-row{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:24px;align-items:center;padding:22px;background:#0a263b;border:1px solid #25455a}
+.demand-row>div{min-width:0}.demand-row>div>strong{color:var(--aqua);font-size:.7rem;letter-spacing:.1em}.demand-row h2{margin:5px 0;font-size:1.15rem}.demand-row p{margin:0;color:#95adba;font-size:.8rem;overflow-wrap:anywhere}.demand-row>a{min-height:44px;display:inline-grid;place-items:center;padding:8px 14px;border:1px solid #476575;color:#fff}
+.demand-detail-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(320px,.9fr);gap:22px;align-items:start}
+.demand-detail-grid h2,.demand-history-section h2{margin-bottom:24px}.demand-data{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin:0}.demand-data div{padding-top:10px;border-top:1px solid #25455a}.demand-data dt,.demand-message span{color:#8ea9b8;font-size:.65rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.demand-data dd{margin:5px 0 0;overflow-wrap:anywhere}.demand-message{margin-top:28px;padding:20px;border-left:3px solid var(--aqua);background:#061b2d}.demand-message p{white-space:pre-wrap;line-height:1.65}.demand-update-form{display:grid;gap:18px}.demand-update-form label em{font-size:.62rem;font-style:normal;text-transform:none;color:#ffd56b}.demand-history-section{margin-top:22px}.demand-history{list-style:none;margin:0;padding:0 0 0 24px;border-left:1px solid #31566b}.demand-history li{position:relative;padding:0 0 28px 18px}.demand-history li:before{content:"";position:absolute;top:3px;left:-30px;width:9px;height:9px;border:3px solid var(--aqua);border-radius:50%;background:#0a263b}.demand-history li>span{display:block;margin:5px 0;color:#8ea9b8;font-size:.72rem}.demand-history li p{padding:10px 12px;white-space:pre-wrap}.history-public{border-left:3px solid var(--aqua);background:#0e3348}.history-internal{border-left:3px solid #ffd56b;background:#2c2a20;color:#ffe8a3}
+@media(max-width:1000px){.demand-stats{grid-template-columns:repeat(2,1fr)}.demand-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.demand-detail-grid{grid-template-columns:1fr}}
+@media(max-width:720px){.demand-filters,.demand-data{grid-template-columns:1fr}.demand-row{grid-template-columns:1fr;gap:12px}.demand-row>a{width:100%}.filter-actions{flex-direction:column}.filter-actions button{width:100%}}

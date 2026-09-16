@@ -4,5 +4,17 @@
     "server.js": {
       "includeFiles": "{admin/**,assets/**,database/schema.sql,*.html,*.css,*.js}"
     }
-  }
+  },
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/server.js" },
+    { "source": "/privacidade", "destination": "/privacidade.html" },
+    { "source": "/admin/demandas", "destination": "/admin/demandas.html" },
+    { "source": "/admin/demandas/(.*)", "destination": "/admin/demanda.html" },
+    { "source": "/admin/login", "destination": "/admin/login.html" },
+    { "source": "/admin/noticias/nova", "destination": "/admin/editor.html" },
+    { "source": "/admin/noticias/(.*)/editar", "destination": "/admin/editor.html" },
+    { "source": "/admin", "destination": "/admin/index.html" },
+    { "source": "/blog/(.*)", "destination": "/post.html" },
+    { "source": "/blog", "destination": "/blog.html" }
+  ]
 }

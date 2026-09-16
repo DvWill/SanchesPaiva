@@ -1,6 +1,6 @@
 const fs=require('fs'),assert=require('assert'),cp=require('child_process');
 const read=file=>fs.readFileSync(file,'utf8');
-for(const file of ['server.js','script.js','home-news.js','supabase.js','editorial-posts.js','blog.js','post.js','admin.js'])cp.execFileSync(process.execPath,['--check',file],{stdio:'inherit'});
+for(const file of ['server.js','citizen-service.js','citizen.js','citizen-admin.js','script.js','partnerships.js','home-news.js','supabase.js','editorial-posts.js','blog.js','post.js','admin.js'])cp.execFileSync(process.execPath,['--check',file],{stdio:'inherit'});
 const css=read('styles.css'),server=read('server.js'),admin=read('admin.js'),post=read('post.js'),blog=read('blog.js'),schema=read('database/schema.sql');
 for(const token of ['position:fixed','width:min(320px,calc(100vw - 24px))','max-height:calc(100dvh - 100px)','z-index:1000','overflow-y:auto'])assert(css.includes(token),`Menu mobile sem ${token}`);
 assert(server.includes('HttpOnly; SameSite=Strict')&&server.includes('bcrypt.compare'),'Autenticação segura ausente');
@@ -14,6 +14,11 @@ assert(blog.includes('window.EDITORIAL_POSTS')&&read('blog.html').includes('edit
 assert(schema.includes('create table if not exists posts')&&schema.includes('create table if not exists admins'),'Schema PostgreSQL incompleto');
 assert(read('supabase.js').includes('textContent=String(value)'),'Escape de conteúdo ausente');
 const editorial=require('./editorial-posts.js'),eventSlug='ocidental-gastro-movimenta-comercio-cultura-e-turismo',event=editorial[eventSlug],home=read('index.html');
+const partnerships=require('./partnerships.js');
+assert(home.includes('id="parcerias"')&&home.includes('href="#parcerias">Parcerias</a>')&&home.includes('partnerships.js'),'Seção ou navegação de Parcerias ausente');
+assert(partnerships.length===2&&partnerships.reduce((total,partner)=>total+partner.results.length,0)===6,'Parcerias deve conter dois painéis e seis resultados');
+for(const partner of partnerships)for(const result of partner.results)if(result.image)assert(fs.existsSync(result.image),`Imagem de parceria ausente: ${result.image}`);
+assert(read('script.js').includes('.sort((a,b)=>a.top-b.top)'),'Destaque ativo da navegação não considera a ordem visual das seções');
 assert(event&&event.layout==='ocidental-gastro'&&event.images.length===20,'Conteúdo editorial do Ocidental Gastrô incompleto');
 assert(home.includes(`./post.html?slug=${eventSlug}`)&&home.includes('Conheça o evento'),'Card do Ocidental Gastrô sem destino ou chamada');
 for(const image of event.images)assert(fs.existsSync(`.${image.url}`),`Imagem editorial ausente: ${image.url}`);

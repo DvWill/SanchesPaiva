@@ -22,7 +22,7 @@ navLinks.forEach(a=>a.addEventListener('click',()=>closeMenu(false)));
 document.addEventListener('keydown',e=>{if(!nav?.classList.contains('open'))return;if(e.key==='Escape'){e.preventDefault();closeMenu();return}if(e.key==='Tab'){const items=focusables(),first=items[0],last=items.at(-1);if(!items.includes(document.activeElement)){e.preventDefault();(e.shiftKey?last:first)?.focus()}else if(e.shiftKey&&document.activeElement===first){e.preventDefault();last.focus()}else if(!e.shiftKey&&document.activeElement===last){e.preventDefault();first.focus()}}});
 mobileQuery.addEventListener('change',()=>{closeMenu(false);if(portrait)portrait.style.transform=''});closeMenu(false);
 let sectionOffsets=[];
-function measureSections(){sectionOffsets=sections.map(s=>({id:s.id,top:s.getBoundingClientRect().top+scrollY}));scheduleScroll()}
+function measureSections(){sectionOffsets=sections.map(s=>({id:s.id,top:s.getBoundingClientRect().top+scrollY})).sort((a,b)=>a.top-b.top);scheduleScroll()}
 function onScroll(){
   scrollPending=false;const y=scrollY;
   header?.classList.toggle('scrolled',y>40||document.body.classList.contains('blog-page'));
@@ -35,6 +35,8 @@ function onScroll(){
 // Alterna a reação do personagem conforme a seção em destaque.
 const communityCharacter=document.querySelector('.community-character');
 if(communityCharacter){
+  const characterLink=communityCharacter.closest('.community-character-link');
+  if(characterLink?.parentElement!==document.body)document.body.append(characterLink);
   const reactions=['character-point.png','character-wave.png','character-idea.png','character-like.png'];
   const sections=[...document.querySelectorAll('main section')];
   const updateReaction=index=>{const reaction=reactions[index%reactions.length];communityCharacter.classList.add('is-changing');setTimeout(()=>{communityCharacter.src=`assets/photos/${reaction}`;communityCharacter.dataset.reaction=reaction;communityCharacter.classList.remove('is-changing')},140)};
@@ -91,7 +93,6 @@ if(albumImage){
 // Ajustes de conteúdo e experiência da página inicial.
 if(document.body && !document.body.classList.contains('blog-page')){
   const score=document.querySelector('.score div:last-child');if(score)score.innerHTML='<strong>15</strong><span>leis aprovadas</span>';
-  const career=document.querySelectorAll('.career h3');if(career[0])career[0].textContent='Secretário de Governo';if(career[2])career[2].textContent='Secretário industrial, comércio e trabalho';
   const links=['3-feirao-do-emprego-supera-2300-atendimentos','ocidental-gastro-movimenta-comercio-cultura-e-turismo','experiencia-e-preparo-para-transformar-ideias-em-resultados','turismo-religioso-valoriza-vocacao-e-identidade-cultural','protecao-bandeira-brasao-identidade-cidade-ocidental','protecao-bandeira-brasao-identidade-cidade-ocidental'];
   document.querySelectorAll('.bento-card').forEach((card,i)=>{if(links[i]){card.setAttribute('role','link');card.tabIndex=0;const go=()=>location.href=`post.html?slug=${links[i]}`;card.addEventListener('click',event=>{if(!event.target.closest('a'))go()});card.addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&!e.target.closest('a')){e.preventDefault();go()}})}});
 }

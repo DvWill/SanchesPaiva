@@ -313,6 +313,12 @@
     document.body.classList.add('religious-post');
     article.innerHTML=`
       <header class="tr-hero">
+        <div class="tr-hero-background" aria-hidden="true">
+          <img src="${escape(post.video.poster)}" alt="" width="${post.video.posterWidth}" height="${post.video.posterHeight}">
+          <video autoplay muted loop playsinline preload="metadata" poster="${escape(post.video.poster)}" tabindex="-1">
+            <source src="${escape(post.video.url)}" type="video/mp4">
+          </video>
+        </div>
         <div class="wrap tr-hero-inner">
           <nav class="breadcrumb" aria-label="Navegação estrutural"><a href="/">Início</a><span>/</span><a href="/blog.html">Notícias</a><span>/</span><span aria-current="page">Turismo religioso</span></nav>
           <div class="tr-hero-copy">

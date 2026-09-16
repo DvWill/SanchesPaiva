@@ -1,6 +1,9 @@
 /blog/*  /post.html  200
 /admin/noticias/nova  /admin/editor.html  200
 /admin/noticias/*/editar  /admin/editor.html  200
+/admin/demandas/*  /admin/demanda.html  200
+/admin/demandas  /admin/demandas.html  200
 /blog  /blog.html  200
+/privacidade  /privacidade.html  200
 /admin/login  /admin/login.html  200
 /admin  /admin/index.html  200
