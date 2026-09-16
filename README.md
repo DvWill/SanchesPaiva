@@ -35,7 +35,7 @@ PORT=3000
 
 ## Primeiro administrador
 
-Defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` antes da primeira inicialização. O servidor cria o usuário somente se o e-mail ainda não existir. Depois do primeiro acesso, retire `ADMIN_PASSWORD` do ambiente de produção se a plataforma permitir e mantenha o segredo em um cofre seguro.
+Defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` no ambiente do servidor antes do primeiro acesso. O servidor cria o usuário somente se o e-mail ainda não existir, tanto no início do processo Node.js quanto no primeiro login de uma função serverless. Essas variáveis não alteram a senha de um usuário já existente. Depois do primeiro acesso, retire `ADMIN_PASSWORD` do ambiente de produção se a plataforma permitir e mantenha o segredo em um cofre seguro.
 
 ## Gestão das demandas
 

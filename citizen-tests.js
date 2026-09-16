@@ -94,7 +94,7 @@ assert(schema.includes('enable row level security') && schema.includes('revoke a
     let response = await post('/api/citizen/requests', submission);
     let body = await response.json();
     assert.strictEqual(response.status,201,'Cadastro válido não foi persistido');
-    assert(/^AS-20260915-[A-Z2-9]{6}$/.test(body.protocol) && body.whatsapp_url,'Cadastro não retornou protocolo e WhatsApp');
+    assert(/^AS-[0-9]{8}-[A-Z2-9]{6}$/.test(body.protocol) && body.whatsapp_url,'Cadastro não retornou protocolo e WhatsApp');
 
     pool.query = async (sql) => {
       if (sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[storedRequest]};
