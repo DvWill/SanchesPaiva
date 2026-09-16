@@ -20,7 +20,7 @@
 /* Responsive navigation and structural overflow fixes */
 body{overflow-x:clip}main,section,footer{max-width:100%}.mobile-nav-head{display:none}
 @media(max-width:1000px){.nav-shell{height:60px;padding-inline:16px}.header.menu-active .nav-shell{background:rgba(3,24,43,.92);border-color:rgba(255,255,255,.12);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:0 12px 35px rgba(0,0,0,.16)}.nav-shell>nav{position:fixed;top:86px;right:12px;width:min(320px,calc(100vw - 24px));min-height:0;max-height:calc(100dvh - 100px);z-index:1000;display:flex;flex-direction:column;align-items:stretch;justify-content:flex-start;gap:0;padding:8px;overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;border:1px solid rgba(255,255,255,.1);border-radius:22px;background:radial-gradient(circle at 85% 0,rgba(21,196,180,.08),transparent 38%),rgba(3,27,43,.94);box-shadow:0 24px 60px rgba(0,0,0,.35);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);visibility:hidden;pointer-events:none;opacity:0;transform:translateY(-10px) scale(.97);transform-origin:top right;transition:transform 240ms ease,opacity 240ms ease,visibility 0s linear 240ms}.header.scrolled .nav-shell>nav{top:78px}.nav-shell>nav.open{visibility:visible;pointer-events:auto;opacity:1;transform:translateY(0) scale(1);transition-delay:0s}.nav-shell>nav .mobile-nav-head{display:none}.nav-shell>nav>a{position:relative;min-height:48px;display:flex;align-items:center;justify-content:flex-start;margin:0;padding:10px 17px;font:700 clamp(1.0625rem,4.8vw,1.1875rem)/1.2 var(--display);letter-spacing:-.02em;color:rgba(255,255,255,.78);opacity:1;border-radius:12px;transition:color 180ms ease,background 180ms ease,transform 180ms ease}.nav-shell>nav>a+a{border-top:1px solid rgba(255,255,255,.06)}.nav-shell>nav>a:before{content:"";position:absolute;left:7px;width:3px;height:0;border-radius:4px;background:var(--aqua);transition:height 180ms ease}.nav-shell>nav>a:hover,.nav-shell>nav>a:focus-visible{color:#fff;background:rgba(255,255,255,.055);transform:translateX(3px)}.nav-shell>nav>a.active,.nav-shell>nav>a[aria-current=page]{color:var(--aqua);background:rgba(9,197,200,.1);transform:none}.nav-shell>nav>a.active:before,.nav-shell>nav>a[aria-current=page]:before{height:20px}.menu{position:relative;z-index:1001;min-width:46px}.menu-scrim{position:fixed;z-index:90;top:78px;right:0;bottom:0;left:0;background:rgba(0,10,18,.28);visibility:hidden;opacity:0;pointer-events:none;transition:opacity 240ms ease,visibility 0s linear 240ms}.menu-scrim.open{visibility:visible;opacity:1;pointer-events:auto;transition-delay:0s}.hero-layout{min-width:0}.hero-copy,.hero-portrait{min-width:0}}
-@media(max-width:720px){:root{--wrap:min(1180px,calc(100% - 30px))}.section{padding:clamp(70px,18vw,95px) 0}.hero h1,.legacy-copy h2,.section-head h2,.album-copy h2,.contact-copy h2{overflow-wrap:anywhere}.btn{max-width:100%;white-space:normal}.career,.bento,.law-panels,.insta-card,.contact-form{min-width:0}.score strong{font-size:clamp(1.55rem,8vw,2.1rem)}}
+@media(max-width:720px){:root{--wrap:min(1180px,calc(100% - 30px))}.section{padding:clamp(70px,18vw,95px) 0}.hero h1,.legacy-copy h2,.section-head h2,.album-copy h2,.contact-copy h2{overflow-wrap:normal;word-break:normal;hyphens:none}.btn{max-width:100%;white-space:normal}.career,.bento,.law-panels,.insta-card,.contact-form{min-width:0}.score strong{font-size:clamp(1.55rem,8vw,2.1rem)}}
 /* Album: natural page ratio, an outer frame, and no cropped artwork. */
 .album-carousel { position:relative;min-width:0; }
 .album-frame { position:relative;isolation:isolate;width:min(92%,490px);margin:0 auto;padding:8px;background:#0c4a6b;transform:rotate(-2deg);box-shadow:22px 28px 40px rgba(0,0,0,.3);touch-action:pan-y pinch-zoom; }
@@ -408,4 +408,18 @@ body.partnership-modal-open{overflow:hidden}
 @media(min-width:1101px){
   .executive .section-head{margin-inline:auto}
   .executive .career{width:calc(100% - clamp(180px,16vw,220px));margin-inline:auto}
+}
+
+/* Alinhamento editorial dos textos corridos em todas as páginas. */
+body :where(p,blockquote,figcaption,.career-description,.partnership-result__summary){
+  text-align:justify!important;
+  text-justify:inter-word;
+}
+
+/* Nunca divide palavras de títulos entre linhas, inclusive no celular. */
+body :where(h1,h2,h3,h4,h5,h6){
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  -webkit-hyphens:none!important;
+  hyphens:none!important;
 }

@@ -8,7 +8,7 @@
 .admin-body input,.admin-body textarea,.admin-body select { min-width:0;font-size:16px; }
 .admin-body input[type=file] { overflow:hidden; }
 .post-row>div,.row-actions { min-width:0; }
-.post-row h2,.admin-message,.preview-content { overflow-wrap:anywhere; }
+.post-row h2{overflow-wrap:normal;word-break:normal;hyphens:none}.admin-message,.preview-content{overflow-wrap:anywhere}
 .login-shell { min-height:100svh;padding-block:32px; }
 .login-shell form { min-width:0; }
 dialog { max-height:85dvh;overscroll-behavior:contain; }

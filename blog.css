@@ -5,7 +5,7 @@
 @media(max-width:340px){.blog-panel{padding-inline:10px}.post-author strong{font-size:.72rem}.post-category{max-width:90px}.hero-search{padding-inline:15px}}
 
 .feed-column,.feed-nav,.feed-nav-card,.post-author>div,.post-card-body { min-width:0; }
-.post-author strong,.post-card h2,.trend-item h3 { overflow-wrap:anywhere; }
+.post-author strong{overflow-wrap:anywhere}.post-card h2,.trend-item h3{overflow-wrap:normal;word-break:normal;hyphens:none}
 .post-actions button { min-width:44px; }
 @media(max-width:720px) {
  .hero-search input { font-size:16px;min-width:0; }
