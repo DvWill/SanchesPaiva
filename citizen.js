@@ -7,10 +7,10 @@
     { code: 'ENVIADO', label: 'Enviado' },
     { code: 'ACEITO', label: 'Aceito' },
     { code: 'PROTOCOLADO', label: 'Protocolado' },
-    { code: 'EM_EXECUCAO', label: 'Serviço sendo feito' },
+    { code: 'EM_ANDAMENTO', label: 'Serviço sendo feito' },
     { code: 'CONCLUIDO', label: 'Concluído' }
   ];
-  const LOOKUP_NOT_FOUND = 'Não foi possível localizar uma demanda com os dados informados. Verifique o protocolo e o telefone e tente novamente.';
+  const LOOKUP_NOT_FOUND = 'Não encontramos uma solicitação com este protocolo e telefone. Confira os dados informados e tente novamente.';
   const successDialog = document.querySelector('#demand-success');
   const successProtocol = document.querySelector('#success-protocol');
   const successWhatsApp = document.querySelector('#success-whatsapp');
@@ -23,6 +23,9 @@
   const submitButton = form.querySelector('[type="submit"]');
   const submitLabel = submitButton.querySelector('span');
   let submissionKey = null;
+  let isSubmitting = false;
+  let isLookingUp = false;
+  const isDevelopment = ['localhost', '127.0.0.1'].includes(location.hostname);
 
   for (let day = 1; day <= 31; day += 1) {
     const option = document.createElement('option');
@@ -40,8 +43,8 @@
   };
   const normalizePhone = (value) => {
     let digits = String(value || '').replace(/\D/g, '');
-    if (digits.length === 10 || digits.length === 11) digits = `55${digits}`;
-    return /^55\d{10,11}$/.test(digits) ? digits : null;
+    if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) digits = digits.slice(2);
+    return /^\d{10,11}$/.test(digits) ? digits : null;
   };
   const maskPhone = (value) => {
     let digits = String(value || '').replace(/\D/g, '');
@@ -71,17 +74,34 @@
         ...options,
         headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
       });
-    } catch {
+    } catch (fetchError) {
+      console.error('ERRO DE REDE:', fetchError);
       const error = new Error('Não foi possível conectar ao serviço agora. Verifique sua conexão e tente novamente.');
       error.kind = 'network';
       throw error;
     }
-    const data = await response.json().catch(() => ({}));
+
+    const rawText = await response.text();
+    let data = {};
+    try {
+      data = rawText ? JSON.parse(rawText) : {};
+    } catch {
+      data = { raw_response: rawText };
+    }
+
     if (!response.ok) {
-      const error = new Error(data.error || 'Não foi possível concluir a operação.');
-      error.fields = data.fields || {};
+      console.error('ERRO API ALÔ SANCHES', {
+        url,
+        method: options.method || 'GET',
+        status: response.status,
+        statusText: response.statusText,
+        response: data
+      });
+      const error = new Error(data?.error || data?.message || `Erro HTTP ${response.status}: ${response.statusText}`);
+      error.fields = data?.fields || {};
       error.status = response.status;
-      error.code = data.code;
+      error.code = data?.code;
+      error.response = data;
       throw error;
     }
     return data;
@@ -148,6 +168,7 @@
       email: text(form.elements.email.value, 160),
       neighborhood: text(form.elements.neighborhood.value, 100),
       demand_location: text(form.elements.demand_location.value, 180),
+      subject: text(form.elements.subject.value, 160),
       instagram: text(form.elements.instagram.value, 31),
       birthday_day: birthdayDay.value,
       birthday_month: birthdayMonth.value,
@@ -164,6 +185,7 @@
     if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(payload.email)) errors.email = 'Informe um e-mail válido ou deixe o campo vazio.';
     if (payload.neighborhood.length < 2) errors.neighborhood = 'Informe o bairro.';
     if (payload.demand_location.length < 3) errors.demand_location = 'Informe a rua, quadra, setor ou ponto de referência.';
+    if (payload.subject.length < 3) errors.subject = 'Resuma o assunto da demanda.';
     if (payload.instagram && !/^@?[A-Za-z0-9._]{1,30}$/.test(payload.instagram)) errors.instagram = 'Informe um usuário válido, com ou sem @.';
     if (!payload.category) errors.category = 'Selecione o assunto da demanda.';
     if (payload.category === 'Outro' && payload.category_other.length < 2) errors.category_other = 'Especifique o assunto.';
@@ -208,19 +230,35 @@
 
   form.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (isSubmitting) return;
     const status = form.querySelector('.form-status');
     const payload = validateForm();
     if (!payload) return;
+    isSubmitting = true;
+    let whatsappWindow = null;
+    try {
+      whatsappWindow = window.open('', '_blank');
+      if (whatsappWindow) {
+        whatsappWindow.opener = null;
+        whatsappWindow.document.title = 'Abrindo WhatsApp…';
+        whatsappWindow.document.body.textContent = 'Registrando sua demanda com segurança…';
+      }
+    } catch (error) {
+      if (isDevelopment) console.warn('O navegador bloqueou a janela do WhatsApp:', error);
+    }
     const submittedPhone = form.elements.phone.value;
     submitButton.disabled = true;
     submitButton.classList.add('is-loading');
     submitButton.setAttribute('aria-busy', 'true');
-    submitLabel.textContent = 'Enviando demanda…';
+    submitLabel.textContent = 'Registrando demanda…';
     status.className = 'form-status full';
     status.textContent = 'Salvando sua demanda com segurança…';
     await new Promise((resolve) => requestAnimationFrame(resolve));
     try {
       const result = await api('/api/citizen/requests', { method: 'POST', body: JSON.stringify(payload) });
+      if (!/^AS-\d{8}-[A-Z0-9]{6}$/.test(result.protocol || '') || !/^https:\/\/wa\.me\/\d+\?text=/.test(result.whatsapp_url || '')) {
+        throw new Error('Resposta inválida do serviço de demandas.');
+      }
       successProtocol.textContent = result.protocol;
       successWhatsApp.href = result.whatsapp_url;
       copyStatus.textContent = '';
@@ -233,13 +271,20 @@
       submissionKey = null;
       if (typeof successDialog.showModal === 'function') successDialog.showModal();
       else successDialog.setAttribute('open', '');
+      if (whatsappWindow && !whatsappWindow.closed) whatsappWindow.location.replace(result.whatsapp_url);
+      else status.textContent += ' Se o WhatsApp não abriu, use o botão no comprovante.';
     } catch (error) {
+      whatsappWindow?.close();
+      if (isDevelopment) console.error('Falha ao registrar demanda:', error);
       Object.entries(error.fields || {}).forEach(([name, message]) => setError(form, name, message));
       status.classList.add('error');
-      status.textContent = error.message;
+      status.textContent = Object.keys(error.fields || {}).length || error.status === 400 || error.status === 429
+        ? error.message
+        : 'Não foi possível registrar sua demanda. Tente novamente.';
       const first = Object.keys(error.fields || {})[0];
       if (first) form.elements[first === 'birthday' ? 'birthday_day' : first]?.focus();
     } finally {
+      isSubmitting = false;
       submitButton.disabled = false;
       submitButton.classList.remove('is-loading');
       submitButton.removeAttribute('aria-busy');
@@ -254,14 +299,18 @@
   document.querySelector('#copy-protocol').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(successProtocol.textContent);
-      copyStatus.textContent = 'Protocolo copiado.';
+      copyStatus.textContent = 'Protocolo copiado!';
     } catch {
-      const selection = getSelection();
-      const range = document.createRange();
-      range.selectNodeContents(successProtocol);
-      selection.removeAllRanges();
-      selection.addRange(range);
-      copyStatus.textContent = 'Protocolo selecionado. Use Ctrl+C para copiar.';
+      const fallback = document.createElement('textarea');
+      fallback.value = successProtocol.textContent;
+      fallback.setAttribute('readonly', '');
+      fallback.style.position = 'fixed';
+      fallback.style.opacity = '0';
+      document.body.append(fallback);
+      fallback.select();
+      const copied = document.execCommand('copy');
+      fallback.remove();
+      copyStatus.textContent = copied ? 'Protocolo copiado!' : 'Não foi possível copiar. Selecione o protocolo manualmente.';
     }
   });
   document.querySelector('#success-lookup').addEventListener('click', () => {
@@ -287,6 +336,8 @@
     const summary = document.createElement('div');
     summary.className = 'lookup-summary';
     addSummary(summary, 'Assunto', request.subject);
+    addSummary(summary, 'Categoria', request.category);
+    addSummary(summary, 'Local', `${request.neighborhood} — ${request.demand_location}`);
     addSummary(summary, 'Data do envio', formatDate(request.created_at));
     addSummary(summary, 'Última atualização', formatDate(request.updated_at));
     addSummary(summary, 'Status atual', request.status_label || STEPS.find((step) => step.code === request.status)?.label || request.status);
@@ -339,6 +390,7 @@
   });
   lookupForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    if (isLookingUp) return;
     clearErrors(lookupForm);
     const status = lookupForm.querySelector('.lookup-status');
     const button = lookupForm.querySelector('[type="submit"]');
@@ -362,6 +414,7 @@
       lookupForm.querySelector('[aria-invalid="true"]')?.focus();
       return;
     }
+    isLookingUp = true;
     button.disabled = true;
     button.classList.add('is-loading');
     button.setAttribute('aria-busy', 'true');
@@ -373,12 +426,14 @@
       status.classList.add('success');
       status.textContent = 'Demanda localizada.';
     } catch (error) {
+      if (isDevelopment) console.error('Falha ao consultar demanda:', error);
       status.classList.add('error');
       status.textContent = error.status === 404 ? LOOKUP_NOT_FOUND
         : error.kind === 'network' || error.status >= 500
           ? 'Não foi possível conectar ao serviço agora. Tente novamente em instantes.'
           : error.message;
     } finally {
+      isLookingUp = false;
       button.disabled = false;
       button.classList.remove('is-loading');
       button.removeAttribute('aria-busy');

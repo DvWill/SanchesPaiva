@@ -4,7 +4,7 @@
     ENVIADO: 'Enviado',
     ACEITO: 'Aceito',
     PROTOCOLADO: 'Protocolado',
-    EM_EXECUCAO: 'Serviço sendo feito',
+    EM_ANDAMENTO: 'Serviço sendo feito',
     CONCLUIDO: 'Concluído'
   };
   const STATUSES = Object.keys(STATUS_LABELS);
@@ -16,7 +16,8 @@
   };
   const formatDate = (value) => value ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : '—';
   const formatPhone = (value = '') => {
-    const digits = value.replace(/^55/, '');
+    let digits = String(value).replace(/\D/g, '');
+    if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) digits = digits.slice(2);
     return digits.length === 11 ? `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`
       : digits.length === 10 ? `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}` : value;
   };
@@ -56,7 +57,7 @@
         const details = document.createElement('p');
         protocol.textContent = request.protocol;
         title.textContent = request.name;
-        details.textContent = `${categoryLabel(request)} · ${request.neighborhood} · ${formatPhone(request.phone_normalized)} · ${formatDate(request.created_at)}`;
+        details.textContent = `${request.subject} · ${categoryLabel(request)} · ${request.neighborhood} · ${formatPhone(request.phone_normalized)} · ${formatDate(request.created_at)}`;
         main.append(protocol, title, details);
         const status = document.createElement('span');
         status.className = `status-pill status-${String(request.status).toLowerCase()}`;
@@ -78,7 +79,7 @@
         const requests = await APP.api(`/api/admin/citizen-requests?${parameters}`);
         draw(requests);
         const sent = requests.filter((item) => item.status === 'ENVIADO').length;
-        const inProgress = requests.filter((item) => ['ACEITO','PROTOCOLADO','EM_EXECUCAO'].includes(item.status)).length;
+        const inProgress = requests.filter((item) => ['ACEITO','PROTOCOLADO','EM_ANDAMENTO'].includes(item.status)).length;
         const completed = requests.filter((item) => item.status === 'CONCLUIDO').length;
         document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${requests.length}</strong>${requests.length === 1 ? 'Encontrada' : 'Encontradas'}</div><div class="stat"><strong>${sent}</strong>${sent === 1 ? 'Enviada' : 'Enviadas'}</div><div class="stat"><strong>${inProgress}</strong>Em atendimento</div><div class="stat"><strong>${completed}</strong>${completed === 1 ? 'Concluída' : 'Concluídas'}</div>`;
         message('');
@@ -121,7 +122,8 @@
     addDetail(data, 'E-mail', request.email || 'Não informado');
     addDetail(data, 'Bairro', request.neighborhood);
     addDetail(data, 'Local', request.demand_location);
-    addDetail(data, 'Assunto', categoryLabel(request));
+    addDetail(data, 'Assunto', request.subject);
+    addDetail(data, 'Categoria', categoryLabel(request));
     addDetail(data, 'Instagram', request.instagram || 'Não informado');
     addDetail(data, 'Aniversário', request.birthday_day ? `${String(request.birthday_day).padStart(2,'0')}/${String(request.birthday_month).padStart(2,'0')}` : 'Não informado');
     addDetail(data, 'Comunicações autorizadas', request.marketing_consent ? 'Sim' : 'Não');

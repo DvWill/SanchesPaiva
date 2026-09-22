@@ -19,12 +19,15 @@ Site institucional com blog, painel editorial e o canal de atendimento ao cidad�
 - `citizen_rate_limits`: limitação de cadastros e consultas por identificador pseudonimizado.
 - `admins` e `admin_sessions`: usuários administrativos e sessões autenticadas.
 
-O protocolo é criado exclusivamente no servidor no formato `AS-AAAAMMDD-XXXXXX`. Cadastro e primeira movimentação são gravados na mesma transação. A consulta pública usa `POST` e exige protocolo mais telefone; não retorna telefone, Instagram, aniversário nem anotações internas.
+O protocolo é criado exclusivamente no servidor no formato `AS-AAAAMMDD-XXXXXX`. Cadastro e primeira movimentação são gravados na mesma transação. O telefone é persistido apenas com DDD+número e a mesma normalização é usada na consulta. A consulta pública usa `POST` e exige protocolo mais telefone; não retorna telefone, e-mail, Instagram, aniversário, descrição nem anotações internas.
+
+O fluxo utiliza os estados `ENVIADO`, `ACEITO`, `PROTOCOLADO`, `EM_ANDAMENTO` e `CONCLUIDO`. Cada mudança fica registrada em `citizen_request_updates`.
 
 ## Variáveis de ambiente
 
 ```dotenv
 DATABASE_URL=postgresql://usuario:senha@host/banco?sslmode=require
+DATABASE_SSL_REJECT_UNAUTHORIZED=true
 ADMIN_EMAIL=admin@seudominio.com.br
 ADMIN_PASSWORD=troque-por-uma-senha-forte
 RATE_LIMIT_SECRET=gere-uma-frase-aleatoria-longa-e-secreta
@@ -50,7 +53,7 @@ Defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` no ambiente do servidor antes do primeir
 
 Para que cadastro e consulta funcionem, publique o projeto em uma hospedagem Node.js/serverless conectada ao PostgreSQL. Não publique somente a pasta `dist`, pois ela contém apenas os arquivos estáticos.
 
-Na Vercel, `vercel.json` encaminha `/api/*` para `server.js` e mantém as rotas amigáveis. Antes do primeiro deploy, configure as variáveis de ambiente de produção e execute `npm run db:migrate` apontando para o banco de produção. Em outra hospedagem Node.js, use `npm start` e mantenha HTTPS obrigatório.
+Na Vercel, `api/index.js` é a entrada explícita da Function Express e `vercel.json` encaminha `/api/*` e as páginas administrativas protegidas para ela. Configure as variáveis de ambiente de produção antes do deploy; o script `vercel-build` aplica a migração idempotente e interrompe a publicação se o banco não estiver configurado. Em outra hospedagem Node.js, execute `npm run db:migrate`, use `npm start` e mantenha HTTPS obrigatório.
 
 O build estático (`npm run build`) continua disponível para validar e empacotar a parte visual, mas o Alô, Sanches depende do backend ativo.
 

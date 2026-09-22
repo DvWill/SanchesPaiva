@@ -5,6 +5,7 @@
   "scripts": {
     "start": "node server.js",
     "build": "node build.js",
+    "vercel-build": "node database/migrate.js && node build.js",
     "db:migrate": "node database/migrate.js",
     "test": "node tests.js && node citizen-tests.js && node auth-tests.js"
   },

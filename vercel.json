@@ -1,23 +1,25 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "buildCommand": "npm run vercel-build",
   "functions": {
-    "server.js": {
-      "includeFiles": "{admin/**,assets/**,database/schema.sql,*.html,*.css,*.js}"
+    "api/index.js": {
+      "includeFiles": "admin/*.html"
     }
   },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/server.js" },
+    { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/privacidade", "destination": "/privacidade.html" },
-    { "source": "/admin/demandas", "destination": "/server.js" },
-    { "source": "/admin/demandas/(.*)", "destination": "/server.js" },
-    { "source": "/admin/demandas.html", "destination": "/server.js" },
-    { "source": "/admin/demanda.html", "destination": "/server.js" },
+    { "source": "/admin/demandas", "destination": "/api" },
+    { "source": "/admin/demandas/(.*)", "destination": "/api" },
+    { "source": "/admin/demandas.html", "destination": "/api" },
+    { "source": "/admin/demanda.html", "destination": "/api" },
     { "source": "/admin/login", "destination": "/admin/login.html" },
-    { "source": "/admin/noticias/nova", "destination": "/server.js" },
-    { "source": "/admin/noticias/(.*)/editar", "destination": "/server.js" },
-    { "source": "/admin/editor.html", "destination": "/server.js" },
-    { "source": "/admin/index.html", "destination": "/server.js" },
-    { "source": "/admin", "destination": "/server.js" },
+    { "source": "/admin/noticias/nova", "destination": "/api" },
+    { "source": "/admin/noticias/(.*)/editar", "destination": "/api" },
+    { "source": "/admin/editor.html", "destination": "/api" },
+    { "source": "/admin/index.html", "destination": "/api" },
+    { "source": "/admin", "destination": "/api" },
     { "source": "/blog/(.*)", "destination": "/post.html" },
     { "source": "/blog", "destination": "/blog.html" }
   ]

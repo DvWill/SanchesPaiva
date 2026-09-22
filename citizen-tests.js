@@ -17,6 +17,7 @@ const validPayload = {
   email: 'Maria@Example.com',
   neighborhood: 'Centro',
   demand_location: 'Rua 10, próximo à praça',
+  subject: 'Poste apagado na Rua 10',
   category: 'Iluminação pública',
   message: 'O poste está apagado há três noites.',
   privacy_consent: true,
@@ -28,13 +29,14 @@ const validPayload = {
 
 const valid = validateCitizenRequest(validPayload);
 assert(valid.valid, 'Cadastro válido foi recusado');
-assert.equal(valid.data.phone_normalized, '5561999999999', 'Telefone não foi normalizado');
+assert.equal(valid.data.phone_normalized, '61999999999', 'Telefone não foi normalizado');
+assert.equal(normalizePhone('+55 (61) 99999-9999'), '61999999999', 'Código do país não foi removido da chave de comparação');
 assert.equal(valid.data.email, 'maria@example.com', 'E-mail não foi normalizado');
 assert.equal(valid.data.instagram, null, 'Instagram vazio não permaneceu opcional');
 assert.equal(valid.data.birthday_day, null, 'Aniversário vazio não permaneceu opcional');
 
 const empty = validateCitizenRequest({});
-for (const field of ['name','phone','neighborhood','demand_location','category','message','privacy_consent']) {
+for (const field of ['name','phone','neighborhood','demand_location','subject','category','message','privacy_consent']) {
   assert(empty.errors[field], `Campo obrigatório sem validação: ${field}`);
 }
 assert(validateCitizenRequest({...validPayload,email:'inválido'}).errors.email, 'E-mail inválido foi aceito');
@@ -44,8 +46,8 @@ assert(validateCitizenRequest({...validPayload,category:'Outro',category_other:'
 assert(!normalizePhone('123'), 'Telefone incorreto foi aceito');
 assert(!cleanText('<script>\u0000alert(1)</script>', 100).includes('\u0000'), 'Caractere de controle não foi removido');
 
-assert.deepEqual(STATUSES, ['ENVIADO','ACEITO','PROTOCOLADO','EM_EXECUCAO','CONCLUIDO']);
-assert.equal(STATUS_LABELS.EM_EXECUCAO, 'Serviço sendo feito');
+assert.deepEqual(STATUSES, ['ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO']);
+assert.equal(STATUS_LABELS.EM_ANDAMENTO, 'Serviço sendo feito');
 const protocols = new Set(Array.from({length:5000}, () => createProtocol(new Date('2026-09-21T12:00:00-03:00'))));
 assert.equal(protocols.size, 5000, 'Protocolos aleatórios repetidos no teste');
 for (const protocol of protocols) assert(/^AS-20260921-[A-Z0-9]{6}$/.test(protocol), `Formato inválido: ${protocol}`);
@@ -53,7 +55,7 @@ for (const protocol of protocols) assert(/^AS-20260921-[A-Z0-9]{6}$/.test(protoc
 const whatsapp = createWhatsAppUrl({...valid.data,protocol:'AS-20260921-K7M4Q2',created_at:'2026-09-21T15:00:00Z'});
 const whatsappText = decodeURIComponent(whatsapp);
 assert(whatsapp.startsWith('https://wa.me/5561998451844?text='), 'Número oficial do WhatsApp incorreto');
-assert(whatsappText.includes('AS-20260921-K7M4Q2') && whatsappText.includes('Assunto: Iluminação pública'), 'Mensagem do WhatsApp incompleta');
+assert(whatsappText.includes('AS-20260921-K7M4Q2') && whatsappText.includes('Assunto: Poste apagado na Rua 10') && whatsappText.includes('Categoria: Iluminação pública'), 'Mensagem do WhatsApp incompleta');
 assert(!whatsappText.includes('Instagram') && !whatsappText.includes('aniversário'), 'Dados opcionais vazaram para o WhatsApp');
 
 const serverSource = fs.readFileSync('server.js','utf8');
@@ -65,7 +67,8 @@ const schema = fs.readFileSync('database/schema.sql','utf8');
 
 assert(serverSource.includes("app.post('/api/citizen/requests'") && serverSource.includes("app.post('/api/citizen/lookup'"), 'Endpoints públicos ausentes');
 assert(serverSource.includes('on conflict do nothing returning *') && serverSource.includes('submission_key'), 'Proteção contra envio duplicado ausente');
-assert(serverSource.includes('Nenhum protocolo foi gerado') && !clientSource.includes('window.open('), 'WhatsApp pode abrir antes da confirmação persistida');
+assert(serverSource.includes('DATABASE_INSERT_FAILED') && clientSource.indexOf("window.open('', '_blank')") < clientSource.indexOf("api('/api/citizen/requests'"), 'Reserva da janela do WhatsApp ausente ou tardia');
+assert(clientSource.includes('whatsappWindow.location.replace(result.whatsapp_url)') && clientSource.includes('whatsappWindow?.close()'), 'WhatsApp não depende do sucesso persistido');
 assert(serverSource.includes('protocol=$1 and phone_normalized=$2'), 'Consulta não exige protocolo e telefone');
 assert(serverSource.includes("app.patch('/api/admin/citizen-requests/:id'") && serverSource.includes('STATUS_REGRESSION_CONFIRMATION_REQUIRED'), 'Atualização administrativa não protege regressão de status');
 assert(adminSource.includes('visibility') && adminSource.includes('observation') && adminSource.includes('admin_email'), 'Painel não separa observação pública e interna');
@@ -76,6 +79,8 @@ assert(clientSource.includes('STEPS.forEach') && clientSource.includes('is-curre
 assert(css.includes('@media(max-width:720px)') && css.includes('.public-timeline li'), 'Responsividade do atendimento ausente');
 assert(schema.includes('citizen_requests_protocol_idx') && schema.includes('protocol varchar(24) unique not null'), 'Unicidade ou índice de protocolo ausente');
 assert(schema.includes('enable row level security') && schema.includes('revoke all on citizen_requests'), 'RLS ou bloqueio de acesso público direto ausente');
+assert(fs.readFileSync('api/index.js','utf8').includes("require('../server')"), 'Entrada serverless da Vercel ausente');
+assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js'], 'Função serverless não configurada');
 
 (async () => {
   const app = require('./server');
@@ -111,13 +116,14 @@ assert(schema.includes('enable row level security') && schema.includes('revoke a
             email:params[4],
             neighborhood:params[5],
             demand_location:params[6],
-            instagram:params[7],
-            birthday_day:params[8],
-            birthday_month:params[9],
-            category:params[10],
-            category_other:params[11],
-            message:params[12],
-            marketing_consent:params[13],
+            subject:params[7],
+            instagram:params[8],
+            birthday_day:params[9],
+            birthday_month:params[10],
+            category:params[11],
+            category_other:params[12],
+            message:params[13],
+            marketing_consent:params[14],
             status:'ENVIADO',
             created_at:'2026-09-21T15:00:00Z',
             updated_at:'2026-09-21T15:00:00Z'
@@ -151,8 +157,27 @@ assert(schema.includes('enable row level security') && schema.includes('revoke a
     pool.query = async () => { throw new Error('database offline'); };
     response = await post('/api/citizen/requests', {...submission,submission_key:'31994d24-6c1c-4afb-9e2d-4c39d9a1568c'});
     body = await response.json();
-    assert.equal(response.status,503,'Falha no banco não foi tratada');
+    assert.equal(response.status,500,'Falha no banco não foi tratada');
+    assert.equal(body.code,'DATABASE_INSERT_FAILED','Falha no banco não retornou código útil');
     assert(!body.protocol && !body.whatsapp_url,'Falha no banco retornou protocolo ou WhatsApp');
+
+    pool.query = async (sql) => {
+      if (sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[]};
+      if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
+      throw new Error(`Consulta inesperada: ${sql}`);
+    };
+    pool.connect = async () => ({
+      async query(sql) {
+        if (sql === 'begin' || sql === 'rollback') return {rows:[]};
+        if (sql.startsWith('insert into citizen_requests') || sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[]};
+        throw new Error(`Consulta transacional inesperada: ${sql}`);
+      },
+      release() {}
+    });
+    response = await post('/api/citizen/requests', {...submission,submission_key:'32994d24-6c1c-4afb-9e2d-4c39d9a1568c'});
+    body = await response.json();
+    assert.equal(response.status,409,'Esgotamento de colisões de protocolo não retornou conflito');
+    assert(!body.protocol && !body.whatsapp_url,'Colisão retornou protocolo ou WhatsApp');
     console.error = originalError;
 
     pool.query = async (sql, params) => {
@@ -169,13 +194,15 @@ assert(schema.includes('enable row level security') && schema.includes('revoke a
     response = await post('/api/citizen/lookup',{protocol:storedRequest.protocol,phone:'(61) 99999-9999'});
     body = await response.json();
     assert.equal(response.status,200,'Consulta correta falhou');
-    assert.equal(body.subject,'Iluminação pública');
+    assert.equal(body.subject,'Poste apagado na Rua 10');
+    assert.equal(body.category,'Iluminação pública');
+    assert.equal(body.demand_location,'Rua 10, próximo à praça');
     assert.equal(body.status_label,'Enviado');
     assert(!('phone_normalized' in body) && !('email' in body) && !('name' in body) && !('message' in body),'Consulta pública expôs dados pessoais');
     response = await post('/api/citizen/lookup',{protocol:storedRequest.protocol,phone:'(61) 98888-8888'});
     body = await response.json();
     assert.equal(response.status,404,'Telefone incorreto revelou ou localizou a demanda');
-    assert.equal(body.error,'Não foi possível localizar uma demanda com os dados informados. Verifique o protocolo e o telefone e tente novamente.');
+    assert.equal(body.error,'Não encontramos uma solicitação com este protocolo e telefone. Confira os dados informados e tente novamente.');
 
     const adminId='41994d24-6c1c-4afb-9e2d-4c39d9a1568c',requestId=storedRequest.id;
     pool.query = async (sql) => sql.startsWith('select a.id,a.email') ? {rows:[{id:adminId,email:'admin@example.com'}]} : (()=>{throw new Error(`Consulta administrativa inesperada: ${sql}`)})();

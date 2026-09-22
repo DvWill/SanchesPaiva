@@ -18,7 +18,7 @@ const STATUS_LABELS = Object.freeze({
   ENVIADO: 'Enviado',
   ACEITO: 'Aceito',
   PROTOCOLADO: 'Protocolado',
-  EM_EXECUCAO: 'Serviço sendo feito',
+  EM_ANDAMENTO: 'Serviço sendo feito',
   CONCLUIDO: 'Concluído'
 });
 const STATUSES = Object.freeze(Object.keys(STATUS_LABELS));
@@ -33,8 +33,16 @@ function cleanText(value, maxLength, multiline = false) {
 
 function normalizePhone(value) {
   let digits = String(value ?? '').replace(/\D/g, '');
-  if (digits.length === 10 || digits.length === 11) digits = `55${digits}`;
-  return /^55\d{10,11}$/.test(digits) ? digits : null;
+  if (digits.startsWith('55') && (digits.length === 12 || digits.length === 13)) digits = digits.slice(2);
+  return /^\d{10,11}$/.test(digits) ? digits : null;
+}
+
+function formatPhone(value) {
+  const digits = normalizePhone(value);
+  if (!digits) return cleanText(value, 20);
+  return digits.length === 11
+    ? `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`
+    : `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
 }
 
 function normalizeEmail(value) {
@@ -64,6 +72,7 @@ function validateCitizenRequest(body = {}) {
   const email = normalizeEmail(body.email);
   const neighborhood = cleanText(body.neighborhood, 100);
   const demandLocation = cleanText(body.demand_location, 180);
+  const subject = cleanText(body.subject, 160);
   const instagram = normalizeInstagram(body.instagram);
   const category = cleanText(body.category, 80);
   const categoryOther = cleanText(body.category_other, 100);
@@ -76,6 +85,7 @@ function validateCitizenRequest(body = {}) {
   if (email === false) errors.email = 'Informe um e-mail válido ou deixe o campo vazio.';
   if (neighborhood.length < 2) errors.neighborhood = 'Informe o bairro.';
   if (demandLocation.length < 3) errors.demand_location = 'Informe a rua, quadra, setor ou ponto de referência.';
+  if (subject.length < 3) errors.subject = 'Resuma o assunto da demanda.';
   if (instagram === false) errors.instagram = 'Informe apenas um nome de usuário válido, com ou sem @.';
   if (!CATEGORIES.includes(category)) errors.category = 'Selecione um assunto válido.';
   if (category === 'Outro' && categoryOther.length < 2) errors.category_other = 'Especifique o assunto da demanda.';
@@ -94,6 +104,7 @@ function validateCitizenRequest(body = {}) {
       email: email || null,
       neighborhood,
       demand_location: demandLocation,
+      subject,
       instagram: instagram || null,
       birthday_day: birthdayDay,
       birthday_month: birthdayMonth,
@@ -143,10 +154,11 @@ function createWhatsAppUrl(request) {
     '',
     `Protocolo: ${request.protocol}`,
     `Nome: ${request.name}`,
-    `Telefone: ${request.phone_normalized}`,
+    `Telefone: ${formatPhone(request.phone_normalized)}`,
     `Bairro: ${request.neighborhood}`,
     `Local da demanda: ${request.demand_location}`,
-    `Assunto: ${displayCategory(request)}`,
+    `Assunto: ${request.subject}`,
+    `Categoria: ${displayCategory(request)}`,
     '',
     'Demanda:',
     request.message,
@@ -165,6 +177,7 @@ module.exports = {
   WHATSAPP_NUMBER,
   cleanText,
   normalizePhone,
+  formatPhone,
   normalizeEmail,
   normalizeInstagram,
   isValidBirthday,
