@@ -1,6 +1,6 @@
 const fs=require('fs'),assert=require('assert'),cp=require('child_process');
 const read=file=>fs.readFileSync(file,'utf8');
-for(const file of ['server.js','citizen-service.js','citizen.js','citizen-admin.js','script.js','partnerships.js','home-news.js','supabase.js','editorial-posts.js','blog.js','post.js','admin.js'])cp.execFileSync(process.execPath,['--check',file],{stdio:'inherit'});
+for(const file of ['server.js','citizen-service.js','citizen.js','citizen-admin.js','database/migrate.js','script.js','partnerships.js','home-news.js','supabase.js','editorial-posts.js','blog.js','post.js','admin.js'])cp.execFileSync(process.execPath,['--check',file],{stdio:'inherit'});
 const css=read('styles.css'),server=read('server.js'),admin=read('admin.js'),post=read('post.js'),blog=read('blog.js'),schema=read('database/schema.sql');
 for(const token of ['position:fixed','width:min(320px,calc(100vw - 24px))','max-height:calc(100dvh - 100px)','z-index:1000','overflow-y:auto'])assert(css.includes(token),`Menu mobile sem ${token}`);
 assert(server.includes('HttpOnly; SameSite=Strict')&&server.includes('bcrypt.compare'),'Autenticação segura ausente');

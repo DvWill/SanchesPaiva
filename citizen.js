@@ -3,6 +3,14 @@
   const lookupForm = document.querySelector('#lookup-form');
   if (!form || !lookupForm) return;
 
+  const STEPS = [
+    { code: 'ENVIADO', label: 'Enviado' },
+    { code: 'ACEITO', label: 'Aceito' },
+    { code: 'PROTOCOLADO', label: 'Protocolado' },
+    { code: 'EM_EXECUCAO', label: 'Serviço sendo feito' },
+    { code: 'CONCLUIDO', label: 'Concluído' }
+  ];
+  const LOOKUP_NOT_FOUND = 'Não foi possível localizar uma demanda com os dados informados. Verifique o protocolo e o telefone e tente novamente.';
   const successDialog = document.querySelector('#demand-success');
   const successProtocol = document.querySelector('#success-protocol');
   const successWhatsApp = document.querySelector('#success-whatsapp');
@@ -35,60 +43,109 @@
     if (digits.length === 10 || digits.length === 11) digits = `55${digits}`;
     return /^55\d{10,11}$/.test(digits) ? digits : null;
   };
+  const maskPhone = (value) => {
+    let digits = String(value || '').replace(/\D/g, '');
+    if (digits.startsWith('55') && digits.length > 11) digits = digits.slice(2);
+    digits = digits.slice(0, 11);
+    if (digits.length <= 2) return digits ? `(${digits}` : '';
+    if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+    if (digits.length <= 10) return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  };
+  const maskProtocol = (value) => {
+    const compact = String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+    if (!compact) return '';
+    const body = compact.startsWith('AS') ? compact.slice(2) : compact;
+    const date = body.slice(0, 8).replace(/\D/g, '');
+    const suffix = body.slice(8, 14).replace(/[^A-Z0-9]/g, '');
+    return `AS${date ? `-${date}` : ''}${suffix ? `-${suffix}` : ''}`;
+  };
   const newSubmissionKey = () => globalThis.crypto?.randomUUID?.() || 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (character) => {
     const random = Math.random() * 16 | 0;
     return (character === 'x' ? random : (random & 3 | 8)).toString(16);
   });
   const api = async (url, options = {}) => {
-    const response = await fetch(url, {
-      ...options,
-      headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
-    });
+    let response;
+    try {
+      response = await fetch(url, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', ...(options.headers || {}) }
+      });
+    } catch {
+      const error = new Error('Não foi possível conectar ao serviço agora. Verifique sua conexão e tente novamente.');
+      error.kind = 'network';
+      throw error;
+    }
     const data = await response.json().catch(() => ({}));
     if (!response.ok) {
       const error = new Error(data.error || 'Não foi possível concluir a operação.');
       error.fields = data.fields || {};
+      error.status = response.status;
+      error.code = data.code;
       throw error;
     }
     return data;
   };
-  const formatDate = (value) => new Intl.DateTimeFormat('pt-BR', {
+  const formatDate = (value) => value ? new Intl.DateTimeFormat('pt-BR', {
     dateStyle: 'short', timeStyle: 'short'
-  }).format(new Date(value));
+  }).format(new Date(value)) : '';
 
-  function fieldGroup(name) {
-    return form.elements[name]?.closest('.input') || null;
+  function prepareErrorAssociations(targetForm) {
+    targetForm.querySelectorAll('.input').forEach((group) => {
+      const control = group.querySelector('input,select,textarea');
+      const error = group.querySelector('small');
+      if (!control || !error || !control.name) return;
+      if (!control.id) control.id = `${targetForm.id}-${control.name}`;
+      if (!error.id) error.id = `${control.id}-error`;
+      control.setAttribute('aria-describedby', error.id);
+    });
   }
-  function setError(name, message = '') {
-    if (name === 'privacy_consent') {
-      document.querySelector('[data-error-for="privacy_consent"]').textContent = message;
+  prepareErrorAssociations(form);
+  prepareErrorAssociations(lookupForm);
+  const privacyError = document.querySelector('[data-error-for="privacy_consent"]');
+  privacyError.id = 'privacy-consent-error';
+  form.elements.privacy_consent.setAttribute('aria-describedby', privacyError.id);
+
+  function fieldGroup(targetForm, name) {
+    return targetForm.elements[name]?.closest('.input') || null;
+  }
+  function setError(targetForm, name, message = '') {
+    if (targetForm === form && name === 'privacy_consent') {
+      const target = document.querySelector('[data-error-for="privacy_consent"]');
+      target.textContent = message;
+      form.elements.privacy_consent.setAttribute('aria-invalid', String(Boolean(message)));
       return;
     }
-    if (name === 'birthday') {
-      setError('birthday_day', message);
-      setError('birthday_month', message);
+    if (targetForm === form && name === 'birthday') {
+      setError(form, 'birthday_day', message);
+      setError(form, 'birthday_month', message);
       return;
     }
-    const group = fieldGroup(name);
+    const group = fieldGroup(targetForm, name);
     if (!group) return;
     group.classList.toggle('invalid', Boolean(message));
+    const control = targetForm.elements[name];
+    control?.setAttribute('aria-invalid', String(Boolean(message)));
     const target = group.querySelector('small');
     if (target) target.textContent = message;
   }
-  function clearErrors() {
-    form.querySelectorAll('.input').forEach((group) => group.classList.remove('invalid'));
-    form.querySelectorAll('.input small,[data-error-for="privacy_consent"]').forEach((node) => { node.textContent = ''; });
+  function clearErrors(targetForm) {
+    targetForm.querySelectorAll('.input').forEach((group) => group.classList.remove('invalid'));
+    targetForm.querySelectorAll('.input small').forEach((node) => { node.textContent = ''; });
+    targetForm.querySelectorAll('[aria-invalid]').forEach((node) => node.setAttribute('aria-invalid', 'false'));
+    if (targetForm === form) document.querySelector('[data-error-for="privacy_consent"]').textContent = '';
   }
   function validBirthday(day, month) {
     const limits = [31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     return month >= 1 && month <= 12 && day >= 1 && day <= limits[month - 1];
   }
   function validateForm() {
-    clearErrors();
+    clearErrors(form);
     const payload = {
       submission_key: submissionKey || newSubmissionKey(),
       name: text(form.elements.name.value, 120),
       phone: form.elements.phone.value,
+      email: text(form.elements.email.value, 160),
       neighborhood: text(form.elements.neighborhood.value, 100),
       demand_location: text(form.elements.demand_location.value, 180),
       instagram: text(form.elements.instagram.value, 31),
@@ -104,21 +161,23 @@
     const errors = {};
     if (payload.name.length < 3) errors.name = 'Informe o nome completo.';
     if (!normalizePhone(payload.phone)) errors.phone = 'Informe um telefone ou WhatsApp válido com DDD.';
+    if (payload.email && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(payload.email)) errors.email = 'Informe um e-mail válido ou deixe o campo vazio.';
     if (payload.neighborhood.length < 2) errors.neighborhood = 'Informe o bairro.';
     if (payload.demand_location.length < 3) errors.demand_location = 'Informe a rua, quadra, setor ou ponto de referência.';
     if (payload.instagram && !/^@?[A-Za-z0-9._]{1,30}$/.test(payload.instagram)) errors.instagram = 'Informe um usuário válido, com ou sem @.';
-    if (!payload.category) errors.category = 'Selecione a categoria da demanda.';
-    if (payload.category === 'Outro' && payload.category_other.length < 2) errors.category_other = 'Especifique a categoria.';
+    if (!payload.category) errors.category = 'Selecione o assunto da demanda.';
+    if (payload.category === 'Outro' && payload.category_other.length < 2) errors.category_other = 'Especifique o assunto.';
     if (payload.message.length < 10) errors.message = 'Descreva a situação com pelo menos 10 caracteres.';
     if (!payload.privacy_consent) errors.privacy_consent = 'É necessário aceitar o Aviso de Privacidade.';
     const day = Number(payload.birthday_day), month = Number(payload.birthday_month);
     if (Boolean(payload.birthday_day) !== Boolean(payload.birthday_month)) errors.birthday = 'Selecione o dia e o mês ou deixe ambos vazios.';
     else if (payload.birthday_day && !validBirthday(day, month)) errors.birthday = 'O dia não é válido para o mês selecionado.';
-    Object.entries(errors).forEach(([name, message]) => setError(name, message));
+    Object.entries(errors).forEach(([name, message]) => setError(form, name, message));
     const first = Object.keys(errors)[0];
     if (first) {
-      const focusName = first === 'birthday' ? 'birthday_day' : first;
-      form.elements[focusName]?.focus();
+      form.querySelector('.form-status').className = 'form-status full error';
+      form.querySelector('.form-status').textContent = 'Revise os campos destacados antes de enviar.';
+      form.elements[first === 'birthday' ? 'birthday_day' : first]?.focus();
       return null;
     }
     submissionKey = payload.submission_key;
@@ -131,15 +190,20 @@
     form.elements.category_other.required = active;
     if (!active) {
       form.elements.category_other.value = '';
-      setError('category_other');
+      setError(form, 'category_other');
     }
   }
   category.addEventListener('change', toggleOtherCategory);
   toggleOtherCategory();
 
+  for (const phoneInput of [form.elements.phone, lookupForm.elements.phone]) {
+    phoneInput.addEventListener('input', () => { phoneInput.value = maskPhone(phoneInput.value); });
+  }
+  lookupForm.elements.protocol.addEventListener('input', () => {
+    lookupForm.elements.protocol.value = maskProtocol(lookupForm.elements.protocol.value);
+  });
   form.addEventListener('input', (event) => {
-    if (event.target.name) setError(event.target.name);
-    if (event.target.name === 'privacy_consent') setError('privacy_consent');
+    if (event.target.name) setError(form, event.target.name);
   });
 
   form.addEventListener('submit', async (event) => {
@@ -147,44 +211,46 @@
     const status = form.querySelector('.form-status');
     const payload = validateForm();
     if (!payload) return;
+    const submittedPhone = form.elements.phone.value;
     submitButton.disabled = true;
+    submitButton.classList.add('is-loading');
     submitButton.setAttribute('aria-busy', 'true');
-    submitLabel.textContent = 'Registrando sua demanda…';
+    submitLabel.textContent = 'Enviando demanda…';
     status.className = 'form-status full';
-    status.textContent = '';
+    status.textContent = 'Salvando sua demanda com segurança…';
+    await new Promise((resolve) => requestAnimationFrame(resolve));
     try {
       const result = await api('/api/citizen/requests', { method: 'POST', body: JSON.stringify(payload) });
       successProtocol.textContent = result.protocol;
       successWhatsApp.href = result.whatsapp_url;
       copyStatus.textContent = '';
-      if (typeof successDialog.showModal === 'function') successDialog.showModal();
-      else successDialog.setAttribute('open', '');
-      try { localStorage.setItem('aloSanchesUltimoProtocolo', result.protocol); } catch {}
       lookupForm.elements.protocol.value = result.protocol;
-      lookupForm.elements.phone.value = form.elements.phone.value;
-      let popup = null;
-      try { popup = window.open(result.whatsapp_url, '_blank'); } catch {}
-      if (popup) try { popup.opener = null; } catch {}
-      else copyStatus.textContent = 'A abertura automática foi bloqueada. Use o botão “Abrir WhatsApp”.';
+      lookupForm.elements.phone.value = submittedPhone;
       status.classList.add('success');
-      status.textContent = `Demanda registrada. Protocolo: ${result.protocol}`;
+      status.textContent = `Demanda enviada com sucesso. Protocolo: ${result.protocol}`;
       form.reset();
       toggleOtherCategory();
       submissionKey = null;
+      if (typeof successDialog.showModal === 'function') successDialog.showModal();
+      else successDialog.setAttribute('open', '');
     } catch (error) {
-      Object.entries(error.fields || {}).forEach(([name, message]) => setError(name, message));
+      Object.entries(error.fields || {}).forEach(([name, message]) => setError(form, name, message));
       status.classList.add('error');
       status.textContent = error.message;
       const first = Object.keys(error.fields || {})[0];
       if (first) form.elements[first === 'birthday' ? 'birthday_day' : first]?.focus();
     } finally {
       submitButton.disabled = false;
+      submitButton.classList.remove('is-loading');
       submitButton.removeAttribute('aria-busy');
       submitLabel.textContent = 'Registrar demanda e abrir WhatsApp';
     }
   });
 
-  document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => successDialog.close()));
+  document.querySelectorAll('[data-close-dialog]').forEach((button) => button.addEventListener('click', () => {
+    if (typeof successDialog.close === 'function') successDialog.close();
+    else successDialog.removeAttribute('open');
+  }));
   document.querySelector('#copy-protocol').addEventListener('click', async () => {
     try {
       await navigator.clipboard.writeText(successProtocol.textContent);
@@ -199,7 +265,8 @@
     }
   });
   document.querySelector('#success-lookup').addEventListener('click', () => {
-    successDialog.close();
+    if (typeof successDialog.close === 'function') successDialog.close();
+    else successDialog.removeAttribute('open');
     lookupForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
     lookupForm.elements.protocol.focus({ preventScroll: true });
   });
@@ -219,74 +286,103 @@
     title.textContent = request.protocol;
     const summary = document.createElement('div');
     summary.className = 'lookup-summary';
-    addSummary(summary, 'Categoria', request.category);
-    addSummary(summary, 'Bairro', request.neighborhood);
-    addSummary(summary, 'Situação atual', request.status);
-    addSummary(summary, 'Registrada em', formatDate(request.created_at));
+    addSummary(summary, 'Assunto', request.subject);
+    addSummary(summary, 'Data do envio', formatDate(request.created_at));
     addSummary(summary, 'Última atualização', formatDate(request.updated_at));
+    addSummary(summary, 'Status atual', request.status_label || STEPS.find((step) => step.code === request.status)?.label || request.status);
     lookupResult.append(title, summary);
-    if (request.public_response) {
-      const response = document.createElement('div');
-      response.className = 'lookup-response';
-      const label = document.createElement('span');
-      const paragraph = document.createElement('p');
-      label.textContent = 'Resposta pública da equipe';
-      paragraph.textContent = request.public_response;
-      response.append(label, paragraph);
-      lookupResult.append(response);
+
+    const currentIndex = Math.max(0, STEPS.findIndex((step) => step.code === request.status));
+    const updatesByStatus = new Map();
+    for (const update of request.history || []) {
+      if (!updatesByStatus.has(update.status)) updatesByStatus.set(update.status, []);
+      updatesByStatus.get(update.status).push(update);
     }
+    const timelineTitle = document.createElement('h5');
+    timelineTitle.textContent = 'Andamento';
     const timeline = document.createElement('ol');
     timeline.className = 'public-timeline';
-    (request.history || []).forEach((update) => {
+    STEPS.forEach((step, index) => {
       const item = document.createElement('li');
+      item.className = index < currentIndex ? 'is-complete' : index === currentIndex ? 'is-current' : 'is-future';
+      if (index === currentIndex) item.setAttribute('aria-current', 'step');
+      const marker = document.createElement('span');
+      marker.className = 'timeline-marker';
+      marker.textContent = index < currentIndex ? '✓' : String(index + 1);
+      marker.setAttribute('aria-hidden', 'true');
+      const body = document.createElement('div');
       const heading = document.createElement('strong');
-      const date = document.createElement('time');
-      heading.textContent = update.status;
-      date.dateTime = update.created_at;
-      date.textContent = formatDate(update.created_at);
-      item.append(heading, date);
-      if (update.public_message) {
+      heading.textContent = step.label;
+      body.append(heading);
+      const updates = updatesByStatus.get(step.code) || [];
+      if (updates[0]?.created_at) {
+        const date = document.createElement('time');
+        date.dateTime = updates[0].created_at;
+        date.textContent = formatDate(updates[0].created_at);
+        body.append(date);
+      }
+      updates.filter((update) => update.public_message).forEach((update) => {
         const paragraph = document.createElement('p');
         paragraph.textContent = update.public_message;
-        item.append(paragraph);
-      }
+        body.append(paragraph);
+      });
+      item.append(marker, body);
       timeline.append(item);
     });
-    lookupResult.append(timeline);
+    lookupResult.append(timelineTitle, timeline);
     lookupResult.hidden = false;
+    lookupResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   }
 
+  lookupForm.addEventListener('input', (event) => {
+    if (event.target.name) setError(lookupForm, event.target.name);
+  });
   lookupForm.addEventListener('submit', async (event) => {
     event.preventDefault();
+    clearErrors(lookupForm);
     const status = lookupForm.querySelector('.lookup-status');
     const button = lookupForm.querySelector('[type="submit"]');
+    const buttonLabel = button.querySelector('span');
     const protocol = text(lookupForm.elements.protocol.value, 24).toUpperCase();
     const phone = lookupForm.elements.phone.value;
+    let invalid = false;
+    if (!/^AS-\d{8}-[A-Z0-9]{6}$/.test(protocol)) {
+      setError(lookupForm, 'protocol', 'Informe um protocolo no formato AS-AAAAMMDD-XXXXXX.');
+      invalid = true;
+    }
+    if (!normalizePhone(phone)) {
+      setError(lookupForm, 'phone', 'Informe um telefone válido com DDD.');
+      invalid = true;
+    }
     status.className = 'lookup-status';
     lookupResult.hidden = true;
-    if (!/^AS-\d{8}-[A-Z2-9]{6}$/.test(protocol) || !normalizePhone(phone)) {
+    if (invalid) {
       status.classList.add('error');
-      status.textContent = 'Informe um protocolo e um telefone válidos.';
+      status.textContent = 'Revise os campos destacados.';
+      lookupForm.querySelector('[aria-invalid="true"]')?.focus();
       return;
     }
     button.disabled = true;
-    button.textContent = 'Consultando…';
-    status.textContent = '';
+    button.classList.add('is-loading');
+    button.setAttribute('aria-busy', 'true');
+    buttonLabel.textContent = 'Consultando…';
+    status.textContent = 'Consultando o andamento…';
     try {
       const request = await api('/api/citizen/lookup', { method: 'POST', body: JSON.stringify({ protocol, phone }) });
       renderLookup(request);
       status.classList.add('success');
-      status.textContent = 'Andamento localizado.';
+      status.textContent = 'Demanda localizada.';
     } catch (error) {
       status.classList.add('error');
-      status.textContent = error.message;
+      status.textContent = error.status === 404 ? LOOKUP_NOT_FOUND
+        : error.kind === 'network' || error.status >= 500
+          ? 'Não foi possível conectar ao serviço agora. Tente novamente em instantes.'
+          : error.message;
     } finally {
       button.disabled = false;
-      button.textContent = 'Consultar andamento';
+      button.classList.remove('is-loading');
+      button.removeAttribute('aria-busy');
+      buttonLabel.textContent = 'Consultar andamento';
     }
   });
-
-  let lastProtocol = null;
-  try { lastProtocol = localStorage.getItem('aloSanchesUltimoProtocolo'); } catch {}
-  if (lastProtocol && /^AS-\d{8}-[A-Z2-9]{6}$/.test(lastProtocol)) lookupForm.elements.protocol.value = lastProtocol;
 })();

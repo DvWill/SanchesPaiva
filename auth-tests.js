@@ -7,6 +7,7 @@ const sessions=[];
 let adminInserts=0;
 class FakePool{
   async query(sql,params=[]){
+    if(sql.startsWith('insert into citizen_rate_limits'))return {rows:[{hits:1}]};
     if(sql.startsWith('select 1 from admins'))return {rows:admins.filter(admin=>admin.email.toLowerCase()===params[0].toLowerCase()).map(()=>({one:1}))};
     if(sql.startsWith('insert into admins')){
       if(!admins.some(admin=>admin.email===params[0])){admins.push({id:'test-admin',email:params[0],password_hash:params[1]});adminInserts++}
@@ -35,6 +36,8 @@ async function main(){
     await new Promise(resolve=>server.once('listening',resolve));
     const base=`http://127.0.0.1:${server.address().port}`;
     const login=(email,password)=>fetch(`${base}/api/auth/login`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,password})});
+    let protectedPage=await fetch(`${base}/admin/demandas`,{redirect:'manual'});
+    assert.equal(protectedPage.status,303,'admin page should redirect unauthenticated visitors');
     let response=await login('admin@example.test','wrong-password');
     assert.equal(response.status,401);
     assert.equal(adminInserts,1,'serverless login should create the configured administrator');
@@ -46,6 +49,8 @@ async function main(){
     response=await fetch(`${base}/api/auth/session`,{headers:{Cookie:cookie}});
     assert.equal(response.status,200);
     assert.equal((await response.json()).email,'admin@example.test');
+    protectedPage=await fetch(`${base}/admin/demandas`,{headers:{Cookie:cookie},redirect:'manual'});
+    assert.equal(protectedPage.status,200,'authenticated administrator could not open the demand panel');
 
     response=await login('admin@example.test','test-password-only');
     assert.equal(response.status,200);

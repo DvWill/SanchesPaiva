@@ -14,15 +14,14 @@ const CATEGORIES = Object.freeze([
   'Sugestão',
   'Outro'
 ]);
-const STATUSES = Object.freeze([
-  'Recebida',
-  'Em triagem',
-  'Encaminhada ao órgão responsável',
-  'Em andamento',
-  'Aguardando informações do cidadão',
-  'Concluída',
-  'Arquivada'
-]);
+const STATUS_LABELS = Object.freeze({
+  ENVIADO: 'Enviado',
+  ACEITO: 'Aceito',
+  PROTOCOLADO: 'Protocolado',
+  EM_EXECUCAO: 'Serviço sendo feito',
+  CONCLUIDO: 'Concluído'
+});
+const STATUSES = Object.freeze(Object.keys(STATUS_LABELS));
 
 function cleanText(value, maxLength, multiline = false) {
   const normalized = String(value ?? '').normalize('NFKC').replace(/\u0000/g, '');
@@ -35,8 +34,13 @@ function cleanText(value, maxLength, multiline = false) {
 function normalizePhone(value) {
   let digits = String(value ?? '').replace(/\D/g, '');
   if (digits.length === 10 || digits.length === 11) digits = `55${digits}`;
-  if (!/^55\d{10,11}$/.test(digits)) return null;
-  return digits;
+  return /^55\d{10,11}$/.test(digits) ? digits : null;
+}
+
+function normalizeEmail(value) {
+  const email = cleanText(value, 160).toLowerCase();
+  if (!email) return null;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email) ? email : false;
 }
 
 function normalizeInstagram(value) {
@@ -57,6 +61,7 @@ function validateCitizenRequest(body = {}) {
   const errors = {};
   const name = cleanText(body.name, 120);
   const phone = normalizePhone(body.phone);
+  const email = normalizeEmail(body.email);
   const neighborhood = cleanText(body.neighborhood, 100);
   const demandLocation = cleanText(body.demand_location, 180);
   const instagram = normalizeInstagram(body.instagram);
@@ -68,11 +73,12 @@ function validateCitizenRequest(body = {}) {
 
   if (name.length < 3) errors.name = 'Informe o nome completo.';
   if (!phone) errors.phone = 'Informe um telefone ou WhatsApp válido com DDD.';
+  if (email === false) errors.email = 'Informe um e-mail válido ou deixe o campo vazio.';
   if (neighborhood.length < 2) errors.neighborhood = 'Informe o bairro.';
   if (demandLocation.length < 3) errors.demand_location = 'Informe a rua, quadra, setor ou ponto de referência.';
   if (instagram === false) errors.instagram = 'Informe apenas um nome de usuário válido, com ou sem @.';
-  if (!CATEGORIES.includes(category)) errors.category = 'Selecione uma categoria válida.';
-  if (category === 'Outro' && categoryOther.length < 2) errors.category_other = 'Especifique a categoria da demanda.';
+  if (!CATEGORIES.includes(category)) errors.category = 'Selecione um assunto válido.';
+  if (category === 'Outro' && categoryOther.length < 2) errors.category_other = 'Especifique o assunto da demanda.';
   if (message.length < 10) errors.message = 'Descreva a situação com pelo menos 10 caracteres.';
   if (body.privacy_consent !== true) errors.privacy_consent = 'É necessário aceitar o Aviso de Privacidade.';
   if ((birthdayDay == null) !== (birthdayMonth == null)) errors.birthday = 'Selecione o dia e o mês do aniversário ou deixe ambos vazios.';
@@ -85,6 +91,7 @@ function validateCitizenRequest(body = {}) {
     data: {
       name,
       phone_normalized: phone,
+      email: email || null,
       neighborhood,
       demand_location: demandLocation,
       instagram: instagram || null,
@@ -108,10 +115,10 @@ function protocolDate(date = new Date()) {
 }
 
 function createProtocol(date = new Date(), randomBytes = crypto.randomBytes) {
-  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   const bytes = randomBytes(6);
   let suffix = '';
-  for (const byte of bytes) suffix += alphabet[byte & 31];
+  for (const byte of bytes) suffix += alphabet[byte % alphabet.length];
   return `AS-${protocolDate(date)}-${suffix}`;
 }
 
@@ -119,6 +126,10 @@ function displayCategory(request) {
   return request.category === 'Outro' && request.category_other
     ? `Outro — ${request.category_other}`
     : request.category;
+}
+
+function statusLabel(status) {
+  return STATUS_LABELS[status] || status;
 }
 
 function createWhatsAppUrl(request) {
@@ -135,7 +146,7 @@ function createWhatsAppUrl(request) {
     `Telefone: ${request.phone_normalized}`,
     `Bairro: ${request.neighborhood}`,
     `Local da demanda: ${request.demand_location}`,
-    `Categoria: ${displayCategory(request)}`,
+    `Assunto: ${displayCategory(request)}`,
     '',
     'Demanda:',
     request.message,
@@ -150,14 +161,17 @@ function createWhatsAppUrl(request) {
 module.exports = {
   CATEGORIES,
   STATUSES,
+  STATUS_LABELS,
   WHATSAPP_NUMBER,
   cleanText,
   normalizePhone,
+  normalizeEmail,
   normalizeInstagram,
   isValidBirthday,
   validateCitizenRequest,
   protocolDate,
   createProtocol,
   displayCategory,
+  statusLabel,
   createWhatsAppUrl
 };

@@ -1,6 +1,13 @@
 (() => {
   const CATEGORIES = ['Iluminação pública','Buracos e pavimentação','Limpeza urbana','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro'];
-  const STATUSES = ['Recebida','Em triagem','Encaminhada ao órgão responsável','Em andamento','Aguardando informações do cidadão','Concluída','Arquivada'];
+  const STATUS_LABELS = {
+    ENVIADO: 'Enviado',
+    ACEITO: 'Aceito',
+    PROTOCOLADO: 'Protocolado',
+    EM_EXECUCAO: 'Serviço sendo feito',
+    CONCLUIDO: 'Concluído'
+  };
+  const STATUSES = Object.keys(STATUS_LABELS);
   const message = (value, error = false) => {
     const target = document.querySelector('.admin-message');
     if (!target) return;
@@ -10,13 +17,15 @@
   const formatDate = (value) => value ? new Intl.DateTimeFormat('pt-BR', { dateStyle: 'short', timeStyle: 'short' }).format(new Date(value)) : '—';
   const formatPhone = (value = '') => {
     const digits = value.replace(/^55/, '');
-    return digits.length === 11 ? `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}` : value;
+    return digits.length === 11 ? `(${digits.slice(0,2)}) ${digits.slice(2,7)}-${digits.slice(7)}`
+      : digits.length === 10 ? `(${digits.slice(0,2)}) ${digits.slice(2,6)}-${digits.slice(6)}` : value;
   };
   const categoryLabel = (request) => request.category === 'Outro' && request.category_other ? `Outro — ${request.category_other}` : request.category;
-  const fillOptions = (select, options) => options.forEach((value) => {
+  const statusLabel = (status) => STATUS_LABELS[status] || status;
+  const fillOptions = (select, options, labels = {}) => options.forEach((value) => {
     const option = document.createElement('option');
     option.value = value;
-    option.textContent = value;
+    option.textContent = labels[value] || value;
     select.append(option);
   });
 
@@ -29,7 +38,7 @@
   if (list) {
     const filters = document.querySelector('#demand-filters');
     fillOptions(filters.elements.category, CATEGORIES);
-    fillOptions(filters.elements.status, STATUSES);
+    fillOptions(filters.elements.status, STATUSES, STATUS_LABELS);
 
     const draw = (requests) => {
       list.replaceChildren();
@@ -50,8 +59,8 @@
         details.textContent = `${categoryLabel(request)} · ${request.neighborhood} · ${formatPhone(request.phone_normalized)} · ${formatDate(request.created_at)}`;
         main.append(protocol, title, details);
         const status = document.createElement('span');
-        status.className = 'status-pill';
-        status.textContent = request.status;
+        status.className = `status-pill status-${String(request.status).toLowerCase()}`;
+        status.textContent = statusLabel(request.status);
         const link = document.createElement('a');
         link.href = `/admin/demandas/${request.id}`;
         link.textContent = 'Abrir demanda';
@@ -68,10 +77,10 @@
       try {
         const requests = await APP.api(`/api/admin/citizen-requests?${parameters}`);
         draw(requests);
-        const received = requests.filter((item) => item.status === 'Recebida').length;
-        const inProgress = requests.filter((item) => ['Em triagem','Em andamento','Encaminhada ao órgão responsável'].includes(item.status)).length;
-        const completed = requests.filter((item) => item.status === 'Concluída').length;
-        document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${requests.length}</strong>${requests.length === 1 ? 'Encontrada' : 'Encontradas'}</div><div class="stat"><strong>${received}</strong>${received === 1 ? 'Recebida' : 'Recebidas'}</div><div class="stat"><strong>${inProgress}</strong>Em atendimento</div><div class="stat"><strong>${completed}</strong>${completed === 1 ? 'Concluída' : 'Concluídas'}</div>`;
+        const sent = requests.filter((item) => item.status === 'ENVIADO').length;
+        const inProgress = requests.filter((item) => ['ACEITO','PROTOCOLADO','EM_EXECUCAO'].includes(item.status)).length;
+        const completed = requests.filter((item) => item.status === 'CONCLUIDO').length;
+        document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${requests.length}</strong>${requests.length === 1 ? 'Encontrada' : 'Encontradas'}</div><div class="stat"><strong>${sent}</strong>${sent === 1 ? 'Enviada' : 'Enviadas'}</div><div class="stat"><strong>${inProgress}</strong>Em atendimento</div><div class="stat"><strong>${completed}</strong>${completed === 1 ? 'Concluída' : 'Concluídas'}</div>`;
         message('');
       } catch (error) {
         list.setAttribute('aria-busy', 'false');
@@ -88,7 +97,8 @@
   if (!detail) return;
   const id = location.pathname.match(/\/admin\/demandas\/([0-9a-f-]+)/i)?.[1];
   const updateForm = document.querySelector('#demand-update-form');
-  fillOptions(updateForm.elements.status, STATUSES);
+  fillOptions(updateForm.elements.status, STATUSES, STATUS_LABELS);
+  let currentStatus = 'ENVIADO';
 
   const addDetail = (container, label, value) => {
     const wrapper = document.createElement('div');
@@ -100,16 +110,18 @@
     container.append(wrapper);
   };
   const render = (request) => {
+    currentStatus = request.status;
     document.querySelector('#demand-protocol').textContent = request.protocol;
-    document.querySelector('#demand-status').textContent = request.status;
+    document.querySelector('#demand-status').textContent = statusLabel(request.status);
     document.querySelector('#demand-message').textContent = request.message;
     const data = document.querySelector('#demand-data');
     data.replaceChildren();
     addDetail(data, 'Nome', request.name);
     addDetail(data, 'Telefone/WhatsApp', formatPhone(request.phone_normalized));
+    addDetail(data, 'E-mail', request.email || 'Não informado');
     addDetail(data, 'Bairro', request.neighborhood);
     addDetail(data, 'Local', request.demand_location);
-    addDetail(data, 'Categoria', categoryLabel(request));
+    addDetail(data, 'Assunto', categoryLabel(request));
     addDetail(data, 'Instagram', request.instagram || 'Não informado');
     addDetail(data, 'Aniversário', request.birthday_day ? `${String(request.birthday_day).padStart(2,'0')}/${String(request.birthday_month).padStart(2,'0')}` : 'Não informado');
     addDetail(data, 'Comunicações autorizadas', request.marketing_consent ? 'Sim' : 'Não');
@@ -124,7 +136,7 @@
       const item = document.createElement('li');
       const heading = document.createElement('strong');
       const meta = document.createElement('span');
-      heading.textContent = update.status;
+      heading.textContent = statusLabel(update.status);
       meta.textContent = `${formatDate(update.created_at)} · ${update.admin_email || 'Registro automático'}`;
       item.append(heading, meta);
       if (update.forwarded_to) {
@@ -135,13 +147,13 @@
       if (update.public_message) {
         const publicNote = document.createElement('p');
         publicNote.className = 'history-public';
-        publicNote.textContent = `Atualização pública: ${update.public_message}`;
+        publicNote.textContent = `Observação pública: ${update.public_message}`;
         item.append(publicNote);
       }
       if (update.internal_note) {
         const internal = document.createElement('p');
         internal.className = 'history-internal';
-        internal.textContent = `Anotação interna: ${update.internal_note}`;
+        internal.textContent = `Observação interna: ${update.internal_note}`;
         item.append(internal);
       }
       history.append(item);
@@ -153,21 +165,31 @@
     try { render(await APP.api(`/api/admin/citizen-requests/${id}`)); }
     catch (error) { message(error.message, true); }
   };
+  updateForm.elements.visibility.addEventListener('change', () => {
+    const publicNote = updateForm.elements.visibility.value === 'public';
+    document.querySelector('#observation-help').textContent = publicNote ? 'Será exibida ao cidadão' : 'Somente administradores poderão ver';
+    updateForm.elements.observation.placeholder = publicNote
+      ? 'Registre o andamento de forma clara e sem dados pessoais desnecessários.'
+      : 'Registre informações internas para a equipe.';
+  });
   updateForm.addEventListener('submit', async (event) => {
     event.preventDefault();
     const button = updateForm.querySelector('[type="submit"]');
+    const formData = new FormData(updateForm);
+    const nextStatus = String(formData.get('status'));
+    const returning = STATUSES.indexOf(nextStatus) < STATUSES.indexOf(currentStatus);
+    if (returning && !confirm(`Esta demanda voltará de “${statusLabel(currentStatus)}” para “${statusLabel(nextStatus)}”. Deseja continuar?`)) return;
     button.disabled = true;
     message('Salvando atualização…');
     try {
-      const formData = new FormData(updateForm);
       await APP.api(`/api/admin/citizen-requests/${id}`, { method: 'PATCH', body: JSON.stringify({
-        status: formData.get('status'),
+        status: nextStatus,
         forwarded_to: formData.get('forwarded_to'),
-        public_update: formData.get('public_update'),
-        internal_note: formData.get('internal_note')
+        visibility: formData.get('visibility'),
+        observation: formData.get('observation'),
+        confirm_regression: returning
       }) });
-      updateForm.elements.public_update.value = '';
-      updateForm.elements.internal_note.value = '';
+      updateForm.elements.observation.value = '';
       message('Atualização registrada com sucesso.');
       await loadDetail();
     } catch (error) { message(error.message, true); }

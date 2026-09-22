@@ -7,9 +7,10 @@ Site institucional com blog, painel editorial e o canal de atendimento ao cidad�
 1. Instale Node.js 18 ou superior e execute `npm install`.
 2. Crie um banco PostgreSQL e copie `.env.example` para `.env`.
 3. Preencha `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` e `RATE_LIMIT_SECRET`.
-4. Execute `npm start`. Na inicialização, `database/schema.sql` é aplicado de forma idempotente.
-5. Abra `http://localhost:3000` e acesse o painel em `http://localhost:3000/admin`.
-6. Rode `npm test` e `npm run build` antes de publicar.
+4. Execute `npm run db:migrate` para criar ou atualizar o banco.
+5. Execute `npm start`. Na inicialização local, `database/schema.sql` também é aplicado de forma idempotente.
+6. Abra `http://localhost:3000` e acesse o painel em `http://localhost:3000/admin`.
+7. Rode `npm test` e `npm run build` antes de publicar.
 
 ## Banco de dados do Alô, Sanches
 
@@ -49,7 +50,7 @@ Defina `ADMIN_EMAIL` e `ADMIN_PASSWORD` no ambiente do servidor antes do primeir
 
 Para que cadastro e consulta funcionem, publique o projeto em uma hospedagem Node.js/serverless conectada ao PostgreSQL. Não publique somente a pasta `dist`, pois ela contém apenas os arquivos estáticos.
 
-Na Vercel, `vercel.json` encaminha `/api/*` para `server.js` e mantém as rotas amigáveis. Antes do primeiro deploy, execute `database/schema.sql` no banco de produção e configure todas as variáveis de ambiente. Em outra hospedagem Node.js, use `npm start` e mantenha HTTPS obrigatório.
+Na Vercel, `vercel.json` encaminha `/api/*` para `server.js` e mantém as rotas amigáveis. Antes do primeiro deploy, configure as variáveis de ambiente de produção e execute `npm run db:migrate` apontando para o banco de produção. Em outra hospedagem Node.js, use `npm start` e mantenha HTTPS obrigatório.
 
 O build estático (`npm run build`) continua disponível para validar e empacotar a parte visual, mas o Alô, Sanches depende do backend ativo.
 
