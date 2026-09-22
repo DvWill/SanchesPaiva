@@ -83,7 +83,7 @@
           <div class="wrap og-split og-reveal">
             <div class="og-copy">
               <p class="og-section-label">Experiência gastronômica</p>
-              <h2 id="sabores-titulo">Sabores que representam a cidade</h2>
+              <h2 id="sabores-titulo">Sabores que representam a Cidade</h2>
               ${s.gastronomy.map(text=>`<p>${escape(text)}</p>`).join('')}
             </div>
             <div class="og-food-collage">
@@ -131,7 +131,7 @@
             <div class="og-impact-photo">${picture(imageByName('lago-jacob.webp'))}</div>
             <div class="og-impact-panel">
               <p class="og-section-label">Economia e turismo</p>
-              <h2 id="impacto-titulo">Um evento que movimenta toda a cidade</h2>
+            <h2 id="impacto-titulo">Um evento que movimenta toda a Cidade</h2>
               ${s.impact.map(text=>`<p>${escape(text)}</p>`).join('')}
               ${quote(q.tourism)}
             </div>
@@ -142,7 +142,7 @@
           <div class="wrap og-reveal">
             <p class="og-section-label">Memória visual</p>
             <h2 id="galeria-titulo">Veja como foi o Ocidental Gastrô</h2>
-            <p class="og-gallery-intro">Gastronomia, encontros, cultura e preparação em um dos principais cartões-postais da cidade.</p>
+            <p class="og-gallery-intro">Gastronomia, encontros, cultura e preparação em um dos principais cartões-postais da Cidade.</p>
             <div class="og-gallery">${gallery}</div>
           </div>
         </section>
@@ -150,7 +150,7 @@
         <section class="og-closing" aria-labelledby="encerramento-titulo">
           <div class="og-reading og-reveal">
             <p class="og-section-label">Identidade local</p>
-            <h2 id="encerramento-titulo">Uma celebração da cidade</h2>
+            <h2 id="encerramento-titulo">Uma celebração da Cidade</h2>
             <p>${escape(s.closing)}</p>
             <p class="og-source">Fonte: ${escape(post.source_name)}</p>
             <div class="og-closing-actions"><a class="btn og-secondary" href="/blog.html">← Voltar para todas as notícias</a><button class="btn" id="share-article" type="button">Compartilhar notícia <span aria-hidden="true">↗</span></button></div>
@@ -362,7 +362,7 @@
           <div class="wrap tr-feature-grid og-reveal">
             <div class="tr-copy">
               <p class="tr-section-label">Praça Nossa Senhora das Graças</p>
-              <h2 id="tr-balao-title">Balão da Santa: devoção transformada em referência da cidade</h2>
+              <h2 id="tr-balao-title">Balão da Santa: devoção transformada em referência da Cidade</h2>
               ${s.balao.map(text=>`<p>${escape(text)}</p>`).join('')}
             </div>
             <div class="tr-balao-gallery" aria-label="Galeria do Balão da Santa">

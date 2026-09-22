@@ -21,7 +21,7 @@ const EDITORIAL_POSTS = (() => {
     ],
     impact: [
       'O circuito gastronômico acontece em apenas cinco municípios goianos, e Cidade Ocidental está entre eles. Além da programação cultural e da estrutura preparada para receber as famílias, o festival movimenta restaurantes, artesãos, comerciantes, profissionais da cultura, prestadores de serviços e o setor turístico.',
-      'A escolha do Lago Jacob também fortalece a imagem do município como destino de lazer e convivência, mostrando à população e aos visitantes o potencial econômico e turístico da cidade.'
+      'A escolha do Lago Jacob também fortalece a imagem do município como destino de lazer e convivência, mostrando à população e aos visitantes o potencial econômico e turístico da Cidade.'
     ],
     closing: 'O Ocidental Gastrô encerrou sua primeira edição mostrando a força da culinária, da cultura e do empreendedorismo de Cidade Ocidental. A combinação de sabores, música, lazer e turismo transformou o Lago Jacob em um espaço de celebração da identidade local.'
   };
@@ -38,9 +38,9 @@ const EDITORIAL_POSTS = (() => {
     {url:'/assets/images/ocidental-gastro/expositora-parada-sabor.webp',alt:'Expositora em uma barraca de lanches preparada para atender o público',width:1400,height:647,caption:'A estrutura reuniu diferentes opções de alimentação.'},
     {url:'/assets/images/ocidental-gastro/expositoras-doces.webp',alt:'Expositoras apresentam doces embalados em um estande do evento',width:1400,height:647,caption:'Doces e produtos artesanais também integraram a feira.'},
     {url:'/assets/images/ocidental-gastro/expositores-gastronomia.webp',alt:'Equipe de um estabelecimento gastronômico em seu estande',width:1400,height:647,caption:'Os participantes divulgaram seus cardápios e serviços.'},
-    {url:'/assets/images/ocidental-gastro/expositores-gastronomia-cardapio.webp',alt:'Expositores mostram o cardápio do Ocidental Gastrô em uma tenda',width:1400,height:647,caption:'O circuito valorizou quem produz e empreende na cidade.'},
+    {url:'/assets/images/ocidental-gastro/expositores-gastronomia-cardapio.webp',alt:'Expositores mostram o cardápio do Ocidental Gastrô em uma tenda',width:1400,height:647,caption:'O circuito valorizou quem produz e empreende na Cidade.'},
     {url:'/assets/images/ocidental-gastro/equipe-banca-sabor.webp',alt:'Equipe de cozinha reunida em uma tenda gastronômica',width:1400,height:647,caption:'Profissionais da gastronomia movimentaram a economia local.'},
-    {url:'/assets/images/ocidental-gastro/equipe-acaraje.webp',alt:'Equipe de um estande de acarajé reunida no festival',width:1400,height:647,caption:'Sabores diversos representaram a cidade no evento.'},
+    {url:'/assets/images/ocidental-gastro/equipe-acaraje.webp',alt:'Equipe de um estande de acarajé reunida no festival',width:1400,height:647,caption:'Sabores diversos representaram a Cidade no evento.'},
     {url:'/assets/images/ocidental-gastro/equipe-organizacao-centro-artesao.webp',alt:'Equipe de organização reunida no Centro de Convivência e Capacitação de Artesãos',width:1400,height:1050,caption:'Instituições e equipes municipais atuaram em parceria.'},
     {url:'/assets/images/ocidental-gastro/equipe-casa-artesao.webp',alt:'Equipe reunida diante da Casa do Artesão de Cidade Ocidental',width:1400,height:1867,caption:'O trabalho de preparação reuniu representantes e equipes locais.'},
     {url:'/assets/images/ocidental-gastro/vistoria-estrutura-lago.webp',alt:'Equipe realiza vistoria em uma área próxima ao Lago Jacob',width:1400,height:1050,caption:'O espaço foi vistoriado durante a preparação da estrutura.'},
@@ -49,12 +49,12 @@ const EDITORIAL_POSTS = (() => {
   ];
   const content = [
     ...sections.intro,
-    '## Sabores que representam a cidade', ...sections.gastronomy,
+    '## Sabores que representam a Cidade', ...sections.gastronomy,
     '## Muito além da gastronomia', ...sections.culture,
     '> “Estou amando o evento: música boa, comida ótima e com preço bem democrático.” — Jéssica, moradora de Cidade Ocidental',
     '## Uma organização construída em parceria', ...sections.organization,
     '> “A atuação do Governo do Estado e da lei de incentivo torna esses eventos possíveis, somada ao apoio que os municípios oferecem. Em Cidade Ocidental, tivemos todo o suporte da Prefeitura.” — Marcelo Soares, presidente do Instituto Idheias',
-    '## Um evento que movimenta toda a cidade', ...sections.impact,
+    '## Um evento que movimenta toda a Cidade', ...sections.impact,
     '> “Essa feira é uma experiência gastronômica e turística que pretendemos realizar por muitos anos.” — Sanches Paiva, secretário municipal de Indústria, Comércio e Turismo à época do evento',
     sections.closing
   ].join('\n\n');
@@ -79,7 +79,7 @@ const EDITORIAL_POSTS = (() => {
       status: 'published',
       layout: 'ocidental-gastro',
       source_name: 'Prefeitura Municipal de Cidade Ocidental',
-      highlight: 'Uma experiência criada para valorizar a gastronomia local e aproximar a população dos empreendedores da cidade.',
+      highlight: 'Uma experiência criada para valorizar a gastronomia local e aproximar a população dos empreendedores da Cidade.',
       stats: [
         {value:'Milhares',label:'de visitantes'},
         {value:15,prefix:'Mais de ',label:'restaurantes'},
@@ -224,7 +224,7 @@ Object.assign(EDITORIAL_POSTS, (() => {
     balao: [
       'A Praça Nossa Senhora das Graças, conhecida popularmente como Balão da Santa, tornou-se um ponto de referência para quem vive ou passa por Cidade Ocidental. Localizado nas proximidades do lago, o espaço reúne simbolismo religioso, memória e identidade urbana.',
       'A reforma da praça foi entregue em dezembro de 2023, em uma programação marcada por uma missa campal e pela consagração de Cidade Ocidental ao Imaculado Coração de Maria. A revitalização proporcionou um ambiente mais acolhedor para momentos de oração, encontros comunitários e visitação.',
-      'Mais do que um marco na paisagem, o Balão da Santa representa a presença da devoção mariana no cotidiano da população e funciona como um símbolo de boas-vindas para a cidade.'
+      'Mais do que um marco na paisagem, o Balão da Santa representa a presença da devoção mariana no cotidiano da população e funciona como um símbolo de boas-vindas para a Cidade.'
     ],
     viaSacra: [
       'A Via-Sacra é uma das manifestações mais simbólicas do calendário cristão. Em Cidade Ocidental, a celebração reúne oração, encenação e participação popular para recordar os passos de Jesus Cristo até a crucificação.',
@@ -266,7 +266,7 @@ Object.assign(EDITORIAL_POSTS, (() => {
     '## Fé que também movimenta a cultura e o turismo', ...sections.intro,
     '## Assista: a inauguração do Balão da Santa',
     'O registro mostra um dos momentos da inauguração da Praça Nossa Senhora das Graças, espaço conhecido pela população como Balão da Santa.',
-    '## Balão da Santa: devoção transformada em referência da cidade', ...sections.balao,
+    '## Balão da Santa: devoção transformada em referência da Cidade', ...sections.balao,
     '## Via-Sacra: fé, reflexão e participação da comunidade', ...sections.viaSacra,
     '## Arraiá da Imaculada: tradição, alegria e convivência', ...sections.arraia,
     '## Um patrimônio religioso de Cidade Ocidental', ...sections.history,

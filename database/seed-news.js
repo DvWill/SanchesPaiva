@@ -7,7 +7,7 @@ const posts=[
 
 Antes de chegar à Câmara Municipal, Sanches Paiva acumulou experiência em quatro funções no Executivo de Cidade Ocidental. A passagem por diferentes áreas da administração ajudou a formar uma visão ampla sobre as prioridades do município e os caminhos necessários para transformar projetos em resultados.
 
-Como **chefe de gabinete**, acompanhou de perto a gestão e as demandas da cidade. Na função de **secretário municipal de Governo**, atuou na articulação e no acompanhamento da administração municipal.
+Como **chefe de gabinete**, acompanhou de perto a gestão e as demandas da Cidade. Na função de **secretário municipal de Governo**, atuou na articulação e no acompanhamento da administração municipal.
 
 ## Desenvolvimento e oportunidades
 
@@ -20,7 +20,7 @@ Esse percurso contribuiu para mais de **50 programas e projetos** de impacto soc
 
 O **Feirão do Emprego** nasceu com uma proposta direta: aproximar trabalhadores locais das empresas e das vagas disponíveis no mercado regional. A iniciativa faz parte de uma atuação voltada ao desenvolvimento econômico, à geração de renda e à criação de caminhos para quem trabalha e produz.
 
-Ao reunir oportunidades em um mesmo ambiente, o projeto facilita o contato entre candidatos e empregadores. Essa aproximação fortalece a circulação de informações sobre vagas e ajuda empresas a encontrar profissionais da própria cidade e da região.
+Ao reunir oportunidades em um mesmo ambiente, o projeto facilita o contato entre candidatos e empregadores. Essa aproximação fortalece a circulação de informações sobre vagas e ajuda empresas a encontrar profissionais da própria Cidade e da região.
 
 ## Emprego e renda como prioridade
 
