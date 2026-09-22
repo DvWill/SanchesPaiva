@@ -15,11 +15,12 @@ const CATEGORIES = Object.freeze([
   'Outro'
 ]);
 const STATUS_LABELS = Object.freeze({
-  ENVIADO: 'Enviado',
-  ACEITO: 'Aceito',
-  PROTOCOLADO: 'Protocolado',
-  EM_ANDAMENTO: 'Serviço sendo feito',
-  CONCLUIDO: 'Concluído'
+  RECEBIDO: 'Recebido',
+  EM_ANALISE: 'Em análise',
+  EM_ANDAMENTO: 'Em andamento',
+  AGUARDANDO_CLIENTE: 'Aguardando cliente',
+  CONCLUIDO: 'Concluído',
+  CANCELADO: 'Cancelado'
 });
 const STATUSES = Object.freeze(Object.keys(STATUS_LABELS));
 

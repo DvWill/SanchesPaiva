@@ -46,13 +46,13 @@ app.post('/api/citizen/requests',async(req,res)=>{
     let request;
     for(let attempt=0;attempt<8&&!request;attempt++){
       const protocol=createProtocol();
-      const {rows}=await client.query(`insert into citizen_requests(submission_key,protocol,name,phone_normalized,email,neighborhood,demand_location,subject,instagram,birthday_day,birthday_month,category,category_other,message,privacy_consent_at,marketing_consent,status) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,now(),$15,'ENVIADO') on conflict do nothing returning *`,[submissionKey,protocol,data.name,data.phone_normalized,data.email,data.neighborhood,data.demand_location,data.subject,data.instagram,data.birthday_day,data.birthday_month,data.category,data.category_other,data.message,data.marketing_consent]);
+      const {rows}=await client.query(`insert into citizen_requests(submission_key,protocol,name,phone_normalized,email,neighborhood,demand_location,subject,instagram,birthday_day,birthday_month,category,category_other,message,privacy_consent_at,marketing_consent,status) values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,now(),$15,'RECEBIDO') on conflict do nothing returning *`,[submissionKey,protocol,data.name,data.phone_normalized,data.email,data.neighborhood,data.demand_location,data.subject,data.instagram,data.birthday_day,data.birthday_month,data.category,data.category_other,data.message,data.marketing_consent]);
       request=rows[0];
       if(!request){const duplicate=await client.query('select * from citizen_requests where submission_key=$1 and phone_normalized=$2',[submissionKey,data.phone_normalized]);request=duplicate.rows[0]}
     }
     if(!request)throw new Error('protocol_generation_failed');
     const history=await client.query('select 1 from citizen_request_updates where request_id=$1 limit 1',[request.id]);
-    if(!history.rows[0])await client.query("insert into citizen_request_updates(request_id,status,public_message,is_public) values($1,'ENVIADO','Demanda enviada e recebida pela equipe do gabinete.',true)",[request.id]);
+    if(!history.rows[0])await client.query("insert into citizen_request_updates(request_id,status,public_message,is_public) values($1,'RECEBIDO','Demanda registrada e recebida pela equipe do gabinete.',true)",[request.id]);
     await client.query('commit');
     res.status(201).json({protocol:request.protocol,created_at:request.created_at,whatsapp_url:createWhatsAppUrl(request)});
   }catch(error){if(client)await client.query('rollback').catch(()=>{});if(!isProduction)console.error('Falha ao registrar demanda:',error);else console.error('Falha ao registrar demanda.',{code:error.code||'DATABASE_INSERT_FAILED'});const collision=error.message==='protocol_generation_failed'||error.code==='23505';res.status(collision?409:500).json({error:collision?'Não foi possível reservar um protocolo único. Tente enviar novamente.':'Erro ao salvar demanda.',code:collision?'PROTOCOL_COLLISION':'DATABASE_INSERT_FAILED'})}finally{client?.release()}
@@ -83,6 +83,13 @@ app.get('/api/admin/citizen-requests',requireAdmin,async(req,res,next)=>{try{
   const where=conditions.length?`where ${conditions.join(' and ')}`:'';
   const {rows}=await pool.query(`select id,protocol,name,phone_normalized,subject,neighborhood,category,category_other,status,forwarded_to,created_at,updated_at from citizen_requests ${where} order by created_at desc limit 200`,values);
   res.json(rows);
+}catch(e){next(e)}});
+
+app.get('/api/admin/citizen-request-stats',requireAdmin,async(_req,res,next)=>{try{
+  const {rows}=await pool.query('select status,count(*)::int as count from citizen_requests group by status');
+  const counts=Object.fromEntries(STATUSES.map((status)=>[status,0]));
+  rows.forEach((row)=>{if(statusPosition(row.status)>=0)counts[row.status]=row.count});
+  res.json({total:Object.values(counts).reduce((sum,count)=>sum+count,0),counts});
 }catch(e){next(e)}});
 
 app.get('/api/admin/citizen-requests/:id',requireAdmin,async(req,res,next)=>{try{

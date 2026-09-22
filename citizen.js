@@ -4,11 +4,12 @@
   if (!form || !lookupForm) return;
 
   const STEPS = [
-    { code: 'ENVIADO', label: 'Enviado' },
-    { code: 'ACEITO', label: 'Aceito' },
-    { code: 'PROTOCOLADO', label: 'Protocolado' },
-    { code: 'EM_ANDAMENTO', label: 'Serviço sendo feito' },
-    { code: 'CONCLUIDO', label: 'Concluído' }
+    { code: 'RECEBIDO', label: 'Recebido' },
+    { code: 'EM_ANALISE', label: 'Em análise' },
+    { code: 'EM_ANDAMENTO', label: 'Em andamento' },
+    { code: 'AGUARDANDO_CLIENTE', label: 'Aguardando cliente' },
+    { code: 'CONCLUIDO', label: 'Concluído' },
+    { code: 'CANCELADO', label: 'Cancelado' }
   ];
   const LOOKUP_NOT_FOUND = 'Não encontramos uma solicitação com este protocolo e telefone. Confira os dados informados e tente novamente.';
   const successDialog = document.querySelector('#demand-success');

@@ -46,8 +46,8 @@ assert(validateCitizenRequest({...validPayload,category:'Outro',category_other:'
 assert(!normalizePhone('123'), 'Telefone incorreto foi aceito');
 assert(!cleanText('<script>\u0000alert(1)</script>', 100).includes('\u0000'), 'Caractere de controle não foi removido');
 
-assert.deepEqual(STATUSES, ['ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO']);
-assert.equal(STATUS_LABELS.EM_ANDAMENTO, 'Serviço sendo feito');
+assert.deepEqual(STATUSES, ['RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO']);
+assert.equal(STATUS_LABELS.AGUARDANDO_CLIENTE, 'Aguardando cliente');
 const protocols = new Set(Array.from({length:5000}, () => createProtocol(new Date('2026-09-21T12:00:00-03:00'))));
 assert.equal(protocols.size, 5000, 'Protocolos aleatórios repetidos no teste');
 for (const protocol of protocols) assert(/^AS-20260921-[A-Z0-9]{6}$/.test(protocol), `Formato inválido: ${protocol}`);
@@ -124,7 +124,7 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
             category_other:params[12],
             message:params[13],
             marketing_consent:params[14],
-            status:'ENVIADO',
+            status:'RECEBIDO',
             created_at:'2026-09-21T15:00:00Z',
             updated_at:'2026-09-21T15:00:00Z'
           };
@@ -141,7 +141,7 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
     assert.equal(response.status,201,'Cadastro válido não foi persistido');
     assert(/^AS-[0-9]{8}-[A-Z0-9]{6}$/.test(body.protocol) && body.whatsapp_url,'Cadastro não retornou protocolo e WhatsApp');
     assert.equal(storedRequest.email,'maria@example.com');
-    assert.equal(storedRequest.status,'ENVIADO');
+    assert.equal(storedRequest.status,'RECEBIDO');
 
     pool.query = async (sql) => {
       if (sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[storedRequest]};
@@ -186,8 +186,8 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
         return params[1] === storedRequest.phone_normalized ? {rows:[storedRequest]} : {rows:[]};
       }
       if (sql.startsWith('select status,public_message')) return {rows:[
-        {status:'ENVIADO',public_message:'Demanda enviada.',created_at:'2026-09-21T15:00:00Z'},
-        {status:'ACEITO',public_message:null,created_at:'2026-09-21T16:00:00Z'}
+        {status:'RECEBIDO',public_message:'Demanda registrada.',created_at:'2026-09-21T15:00:00Z'},
+        {status:'EM_ANALISE',public_message:null,created_at:'2026-09-21T16:00:00Z'}
       ]};
       throw new Error(`Consulta inesperada: ${sql}`);
     };
@@ -197,7 +197,7 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
     assert.equal(body.subject,'Poste apagado na Rua 10');
     assert.equal(body.category,'Iluminação pública');
     assert.equal(body.demand_location,'Rua 10, próximo à praça');
-    assert.equal(body.status_label,'Enviado');
+    assert.equal(body.status_label,'Recebido');
     assert(!('phone_normalized' in body) && !('email' in body) && !('name' in body) && !('message' in body),'Consulta pública expôs dados pessoais');
     response = await post('/api/citizen/lookup',{protocol:storedRequest.protocol,phone:'(61) 98888-8888'});
     body = await response.json();
@@ -210,7 +210,7 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
     pool.connect = async () => ({
       async query(sql,params) {
         if (sql === 'begin' || sql === 'commit' || sql === 'rollback') return {rows:[]};
-        if (sql.startsWith('select * from citizen_requests')) return {rows:[{...storedRequest,status:'ENVIADO',forwarded_to:null}]};
+        if (sql.startsWith('select * from citizen_requests')) return {rows:[{...storedRequest,status:'RECEBIDO',forwarded_to:null}]};
         if (sql.startsWith('update citizen_requests')) return {rows:[{...storedRequest,status:params[0],forwarded_to:params[1]}]};
         if (sql.startsWith('insert into citizen_request_updates')) { auditParams=params; return {rows:[]}; }
         throw new Error(`Transação administrativa inesperada: ${sql}`);
@@ -219,39 +219,39 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
     response = await fetch(`${base}/api/admin/citizen-requests/${requestId}`,{
       method:'PATCH',
       headers:{'Content-Type':'application/json','Cookie':'admin_session=test'},
-      body:JSON.stringify({status:'ACEITO',forwarded_to:'Secretaria responsável',visibility:'public',observation:'Demanda aceita.'})
+      body:JSON.stringify({status:'EM_ANALISE',forwarded_to:'Secretaria responsável',visibility:'public',observation:'Demanda em análise.'})
     });
     assert.equal(response.status,200,'Atualização administrativa falhou');
     assert.equal(auditParams[7],adminId,'Histórico não identificou o administrador');
     assert.equal(auditParams[6],true,'Atualização pública não foi marcada como pública');
-    assert.equal(auditParams[3],'Demanda aceita.');
+    assert.equal(auditParams[3],'Demanda em análise.');
 
     pool.query = async (sql) => {
       if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
-      if (sql.startsWith('select id,protocol')) return {rows:[{...storedRequest,status:'ACEITO',updated_at:'2026-09-21T16:00:00Z'}]};
+      if (sql.startsWith('select id,protocol')) return {rows:[{...storedRequest,status:'EM_ANALISE',updated_at:'2026-09-21T16:00:00Z'}]};
       if (sql.startsWith('select status,public_message')) return {rows:[
-        {status:'ENVIADO',public_message:'Demanda enviada.',created_at:'2026-09-21T15:00:00Z'},
-        {status:'ACEITO',public_message:auditParams[3],created_at:'2026-09-21T16:00:00Z'}
+        {status:'RECEBIDO',public_message:'Demanda registrada.',created_at:'2026-09-21T15:00:00Z'},
+        {status:'EM_ANALISE',public_message:auditParams[3],created_at:'2026-09-21T16:00:00Z'}
       ]};
       throw new Error(`Consulta pública inesperada: ${sql}`);
     };
     response = await post('/api/citizen/lookup',{protocol:storedRequest.protocol,phone:'(61) 99999-9999'});
     body = await response.json();
-    assert.equal(body.status,'ACEITO','Mudança administrativa não apareceu na consulta pública');
-    assert(body.history.some((update)=>update.status==='ACEITO'&&update.public_message==='Demanda aceita.'),'Linha do tempo pública não recebeu a atualização');
+    assert.equal(body.status,'EM_ANALISE','Mudança administrativa não apareceu na consulta pública');
+    assert(body.history.some((update)=>update.status==='EM_ANALISE'&&update.public_message==='Demanda em análise.'),'Linha do tempo pública não recebeu a atualização');
 
     pool.query = async (sql) => sql.startsWith('select a.id,a.email') ? {rows:[{id:adminId,email:'admin@example.com'}]} : (()=>{throw new Error(`Consulta administrativa inesperada: ${sql}`)})();
     pool.connect = async () => ({
       async query(sql) {
         if (sql === 'begin' || sql === 'rollback') return {rows:[]};
-        if (sql.startsWith('select * from citizen_requests')) return {rows:[{...storedRequest,status:'PROTOCOLADO',forwarded_to:null}]};
+        if (sql.startsWith('select * from citizen_requests')) return {rows:[{...storedRequest,status:'EM_ANDAMENTO',forwarded_to:null}]};
         throw new Error(`Regressão não confirmada tentou alterar o banco: ${sql}`);
       },release(){}
     });
     response = await fetch(`${base}/api/admin/citizen-requests/${requestId}`,{
       method:'PATCH',
       headers:{'Content-Type':'application/json','Cookie':'admin_session=test'},
-      body:JSON.stringify({status:'ACEITO',visibility:'internal',observation:'Revisar classificação.'})
+      body:JSON.stringify({status:'EM_ANALISE',visibility:'internal',observation:'Revisar classificação.'})
     });
     assert.equal(response.status,409,'Regressão de status sem confirmação foi aceita');
   } finally {

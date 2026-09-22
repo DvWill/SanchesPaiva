@@ -23,6 +23,8 @@ O protocolo é criado exclusivamente no servidor no formato `AS-AAAAMMDD-XXXXXX`
 
 O fluxo utiliza os estados `ENVIADO`, `ACEITO`, `PROTOCOLADO`, `EM_ANDAMENTO` e `CONCLUIDO`. Cada mudança fica registrada em `citizen_request_updates`.
 
+As demandas usam os status `Recebido`, `Em análise`, `Em andamento`, `Aguardando cliente`, `Concluído` e `Cancelado`. Alterações administrativas são gravadas como eventos imutáveis em `citizen_request_updates`, com observações públicas ou internas e o administrador responsável. Status legados são convertidos automaticamente pela migração idempotente.
+
 ## Variáveis de ambiente
 
 ```dotenv

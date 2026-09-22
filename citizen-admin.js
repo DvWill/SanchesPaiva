@@ -1,11 +1,12 @@
 (() => {
   const CATEGORIES = ['Iluminação pública','Buracos e pavimentação','Limpeza urbana','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro'];
   const STATUS_LABELS = {
-    ENVIADO: 'Enviado',
-    ACEITO: 'Aceito',
-    PROTOCOLADO: 'Protocolado',
-    EM_ANDAMENTO: 'Serviço sendo feito',
-    CONCLUIDO: 'Concluído'
+    RECEBIDO: 'Recebido',
+    EM_ANALISE: 'Em análise',
+    EM_ANDAMENTO: 'Em andamento',
+    AGUARDANDO_CLIENTE: 'Aguardando cliente',
+    CONCLUIDO: 'Concluído',
+    CANCELADO: 'Cancelado'
   };
   const STATUSES = Object.keys(STATUS_LABELS);
   const message = (value, error = false) => {
@@ -78,10 +79,9 @@
       try {
         const requests = await APP.api(`/api/admin/citizen-requests?${parameters}`);
         draw(requests);
-        const sent = requests.filter((item) => item.status === 'ENVIADO').length;
-        const inProgress = requests.filter((item) => ['ACEITO','PROTOCOLADO','EM_ANDAMENTO'].includes(item.status)).length;
-        const completed = requests.filter((item) => item.status === 'CONCLUIDO').length;
-        document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${requests.length}</strong>${requests.length === 1 ? 'Encontrada' : 'Encontradas'}</div><div class="stat"><strong>${sent}</strong>${sent === 1 ? 'Enviada' : 'Enviadas'}</div><div class="stat"><strong>${inProgress}</strong>Em atendimento</div><div class="stat"><strong>${completed}</strong>${completed === 1 ? 'Concluída' : 'Concluídas'}</div>`;
+        const stats = await APP.api('/api/admin/citizen-request-stats');
+        const count = (status) => stats.counts[status] || 0;
+        document.querySelector('#demand-stats').innerHTML = `<div class="stat"><strong>${stats.total}</strong>Total</div><div class="stat"><strong>${count('RECEBIDO') + count('EM_ANALISE')}</strong>Pendentes</div><div class="stat"><strong>${count('EM_ANDAMENTO') + count('AGUARDANDO_CLIENTE')}</strong>Em andamento</div><div class="stat"><strong>${count('CONCLUIDO')}</strong>Concluídas</div>`;
         message('');
       } catch (error) {
         list.setAttribute('aria-busy', 'false');
@@ -99,7 +99,7 @@
   const id = location.pathname.match(/\/admin\/demandas\/([0-9a-f-]+)/i)?.[1];
   const updateForm = document.querySelector('#demand-update-form');
   fillOptions(updateForm.elements.status, STATUSES, STATUS_LABELS);
-  let currentStatus = 'ENVIADO';
+  let currentStatus = 'RECEBIDO';
 
   const addDetail = (container, label, value) => {
     const wrapper = document.createElement('div');

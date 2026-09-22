@@ -63,7 +63,7 @@ create table if not exists citizen_requests(
   message varchar(3000) not null,
   privacy_consent_at timestamptz not null,
   marketing_consent boolean not null default false,
-  status varchar(24) not null default 'ENVIADO' check(status in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO')),
+  status varchar(24) not null default 'RECEBIDO' check(status in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO')),
   forwarded_to varchar(160),
   public_response varchar(1500),
   created_at timestamptz not null default now(),
@@ -76,7 +76,7 @@ create table if not exists citizen_request_updates(
   id uuid primary key default gen_random_uuid(),
   request_id uuid not null references citizen_requests(id) on delete cascade,
   previous_status varchar(24),
-  status varchar(24) not null check(status in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO')),
+  status varchar(24) not null check(status in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO')),
   public_message varchar(1500),
   internal_note varchar(2000),
   forwarded_to varchar(160),
@@ -109,46 +109,58 @@ set subject=case when category='Outro' and category_other is not null then categ
 where subject is null or btrim(subject)='';
 
 update citizen_requests set status=case status
-  when 'Recebida' then 'ENVIADO'
-  when 'Em triagem' then 'ACEITO'
-  when 'Encaminhada ao órgão responsável' then 'PROTOCOLADO'
+  when 'Recebida' then 'RECEBIDO'
+  when 'ENVIADO' then 'RECEBIDO'
+  when 'Em triagem' then 'EM_ANALISE'
+  when 'ACEITO' then 'EM_ANALISE'
+  when 'Encaminhada ao órgão responsável' then 'EM_ANDAMENTO'
+  when 'PROTOCOLADO' then 'EM_ANDAMENTO'
   when 'Em andamento' then 'EM_ANDAMENTO'
-  when 'Aguardando informações do cidadão' then 'EM_ANDAMENTO'
   when 'EM_EXECUCAO' then 'EM_ANDAMENTO'
+  when 'Aguardando informações do cidadão' then 'AGUARDANDO_CLIENTE'
   when 'Concluída' then 'CONCLUIDO'
+  when 'CONCLUIDO' then 'CONCLUIDO'
   when 'Arquivada' then 'CONCLUIDO'
   else status end
-where status not in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO');
+where status not in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO');
 
 update citizen_request_updates set previous_status=case previous_status
-  when 'Recebida' then 'ENVIADO'
-  when 'Em triagem' then 'ACEITO'
-  when 'Encaminhada ao órgão responsável' then 'PROTOCOLADO'
+  when 'Recebida' then 'RECEBIDO'
+  when 'ENVIADO' then 'RECEBIDO'
+  when 'Em triagem' then 'EM_ANALISE'
+  when 'ACEITO' then 'EM_ANALISE'
+  when 'Encaminhada ao órgão responsável' then 'EM_ANDAMENTO'
+  when 'PROTOCOLADO' then 'EM_ANDAMENTO'
   when 'Em andamento' then 'EM_ANDAMENTO'
-  when 'Aguardando informações do cidadão' then 'EM_ANDAMENTO'
   when 'EM_EXECUCAO' then 'EM_ANDAMENTO'
+  when 'Aguardando informações do cidadão' then 'AGUARDANDO_CLIENTE'
   when 'Concluída' then 'CONCLUIDO'
+  when 'CONCLUIDO' then 'CONCLUIDO'
   when 'Arquivada' then 'CONCLUIDO'
   else previous_status end
 where previous_status is not null
-  and previous_status not in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO');
+  and previous_status not in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO');
 
 update citizen_request_updates set status=case status
-  when 'Recebida' then 'ENVIADO'
-  when 'Em triagem' then 'ACEITO'
-  when 'Encaminhada ao órgão responsável' then 'PROTOCOLADO'
+  when 'Recebida' then 'RECEBIDO'
+  when 'ENVIADO' then 'RECEBIDO'
+  when 'Em triagem' then 'EM_ANALISE'
+  when 'ACEITO' then 'EM_ANALISE'
+  when 'Encaminhada ao órgão responsável' then 'EM_ANDAMENTO'
+  when 'PROTOCOLADO' then 'EM_ANDAMENTO'
   when 'Em andamento' then 'EM_ANDAMENTO'
-  when 'Aguardando informações do cidadão' then 'EM_ANDAMENTO'
   when 'EM_EXECUCAO' then 'EM_ANDAMENTO'
+  when 'Aguardando informações do cidadão' then 'AGUARDANDO_CLIENTE'
   when 'Concluída' then 'CONCLUIDO'
+  when 'CONCLUIDO' then 'CONCLUIDO'
   when 'Arquivada' then 'CONCLUIDO'
   else status end
-where status not in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO');
+where status not in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO');
 
 alter table citizen_requests alter column phone_normalized type varchar(11);
 alter table citizen_requests alter column subject set not null;
 alter table citizen_requests alter column status type varchar(24);
-alter table citizen_requests alter column status set default 'ENVIADO';
+alter table citizen_requests alter column status set default 'RECEBIDO';
 alter table citizen_requests add constraint citizen_requests_protocol_check
   check(protocol ~ '^AS-[0-9]{8}-[A-Z0-9]{6}$');
 alter table citizen_requests add constraint citizen_requests_phone_normalized_check
@@ -156,11 +168,11 @@ alter table citizen_requests add constraint citizen_requests_phone_normalized_ch
 alter table citizen_request_updates alter column status type varchar(24);
 alter table citizen_request_updates alter column previous_status type varchar(24);
 alter table citizen_requests add constraint citizen_requests_status_check
-  check(status in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO'));
+  check(status in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO'));
 alter table citizen_request_updates add constraint citizen_request_updates_status_check
-  check(status in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO'));
+  check(status in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO'));
 alter table citizen_request_updates add constraint citizen_request_updates_previous_status_check
-  check(previous_status is null or previous_status in ('ENVIADO','ACEITO','PROTOCOLADO','EM_ANDAMENTO','CONCLUIDO')) not valid;
+  check(previous_status is null or previous_status in ('RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO')) not valid;
 
 create or replace function set_updated_at() returns trigger language plpgsql as $$
 begin
