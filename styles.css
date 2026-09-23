@@ -41,7 +41,7 @@ body{overflow-x:clip}main,section,footer{max-width:100%}.mobile-nav-head{display
 .album-controls button:hover { background:var(--yellow);border-color:var(--yellow);color:var(--night); }
 .album-controls b { color:var(--yellow); }
 .position { min-height:700px; }
-.position-photo { inset:0;z-index:0;background:linear-gradient(0deg,var(--night),transparent 55%),url('assets/photos/sanches-paiva-presenca.webp') center bottom/cover no-repeat;filter:saturate(.82) brightness(.9); }
+.position-photo { inset:0;z-index:0;background:linear-gradient(0deg,var(--night),transparent 55%),url('assets/photos/4.png') center bottom/cover no-repeat;filter:saturate(.82) brightness(.9); }
 .position::before { content:"";position:absolute;z-index:1;inset:0;pointer-events:none;background:linear-gradient(90deg,transparent 32%,rgba(3,24,43,.18) 46%,rgba(3,24,43,.86) 72%,var(--night) 88%); }
 .position .wrap { z-index:2; }
 /* Keep the mobile portrait and its fade together, after the desktop backgrounds. */
@@ -54,7 +54,7 @@ body{overflow-x:clip}main,section,footer{max-width:100%}.mobile-nav-head{display
   .position-photo {
     inset:0 0 auto;
     height:var(--position-photo-height);
-    background:var(--night) url('assets/photos/sanches-paiva-presenca-mobile.webp') center top / cover no-repeat;
+    background:var(--night) url('assets/photos/5.png') center top / cover no-repeat;
     filter:none;
   }
   .position::before {
