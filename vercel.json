@@ -11,6 +11,7 @@
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api" },
     { "source": "/privacidade", "destination": "/privacidade.html" },
+    { "source": "/telefones-uteis", "destination": "/telefones-uteis.html" },
     { "source": "/admin/demandas", "destination": "/api" },
     { "source": "/admin/demandas/(.*)", "destination": "/api" },
     { "source": "/admin/demandas.html", "destination": "/api" },

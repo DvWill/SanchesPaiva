@@ -12,12 +12,12 @@
 <meta property="og:description" content="Presença que vira trabalho. Trabalho que vira resultado.">
 <meta property="og:image" content="assets/photos/sanches-paiva-perfil.png">
 <link rel="icon" href="assets/favicon.svg" type="image/svg+xml">
-<link rel="stylesheet" href="styles.css?v=alo-demandas-20260921">
+<link rel="stylesheet" href="styles.css?v=telefones-page-20260924">
 <script src="data.js" defer>
 </script>
 <script src="partnerships.js?v=parcerias-20260915" defer>
 </script>
-<script src="script.js?v=alo-sanches-20260915" defer>
+<script src="script.js?v=bandeiras-premium-20260923" defer>
 </script>
 <script src="citizen.js?v=alo-demandas-20260922" defer>
 </script>
@@ -40,6 +40,7 @@
 <a href="#resultados">Resultados</a>
 <a href="#parcerias">Parcerias</a>
 <a href="#mandato">Mandato</a>
+<a href="/telefones-uteis">Telefones Úteis</a>
 <a href="blog.html">Notícias</a>
 </nav>
 <button class="menu" type="button" aria-expanded="false" aria-controls="nav">
@@ -464,19 +465,54 @@
 </div>
 </div>
 </section>
-<section class="flags">
+<section class="flags section" aria-labelledby="flags-title">
 <div class="wrap">
-<p class="flags-label">Bandeiras do mandato <span>Deslize para conhecer →</span>
-</p>
-<div class="flag-track" tabindex="0">
-<button class="active" data-copy="Oportunidades para quem trabalha e produz.">Emprego e renda</button>
-<button data-copy="Ambiente favorável a novos negócios e iniciativas locais.">Desenvolvimento econômico</button>
-<button data-copy="Serviços e processos mais simples para o cidadão.">Desburocratização</button>
-<button data-copy="Acolhimento e dignidade para quem mais precisa.">Proteção social</button>
-<button data-copy="Políticas que fortalecem vínculos e cuidados.">Valorização das famílias</button>
-<button data-copy="Respeito às raízes e ao patrimônio da Cidade.">História e identidade</button>
+<header class="flags-intro reveal">
+<div>
+<p class="eyebrow">BANDEIRAS DO MANDATO</p>
+<h2 id="flags-title">Compromissos que orientam nossa atuação.</h2>
+<p class="flags-intro__copy">Áreas prioritárias que conectam projetos, iniciativas e ações desenvolvidas para Cidade Ocidental.</p>
 </div>
-<p class="flag-copy" aria-live="polite">Oportunidades para quem trabalha e produz.</p>
+<span class="flags-count"><b>06</b> frentes</span>
+</header>
+
+<div class="flag-track reveal" role="group" aria-label="Bandeiras do mandato">
+<button class="flag-card active" id="flag-tab-emprego" type="button" aria-pressed="true" tabindex="0">
+<span class="flag-card__top"><b aria-hidden="true">01</b><i aria-hidden="true">↗</i></span>
+<span class="flag-card__title">Emprego e renda</span>
+<span class="flag-card__summary">Oportunidades para quem trabalha e produz.</span>
+</button>
+
+<button class="flag-card" id="flag-tab-desenvolvimento" type="button" aria-pressed="false" tabindex="-1">
+<span class="flag-card__top"><b aria-hidden="true">02</b><i aria-hidden="true">↗</i></span>
+<span class="flag-card__title">Desenvolvimento econômico</span>
+<span class="flag-card__summary">Fortalecimento da economia local e incentivo a quem empreende.</span>
+</button>
+
+<button class="flag-card" id="flag-tab-desburocratizacao" type="button" aria-pressed="false" tabindex="-1">
+<span class="flag-card__top"><b aria-hidden="true">03</b><i aria-hidden="true">↗</i></span>
+<span class="flag-card__title">Desburocratização</span>
+<span class="flag-card__summary">Serviços mais simples, acessíveis e eficientes.</span>
+</button>
+
+<button class="flag-card" id="flag-tab-protecao" type="button" aria-pressed="false" tabindex="-1">
+<span class="flag-card__top"><b aria-hidden="true">04</b><i aria-hidden="true">↗</i></span>
+<span class="flag-card__title">Proteção social</span>
+<span class="flag-card__summary">Atenção às pessoas e às comunidades que mais precisam.</span>
+</button>
+
+<button class="flag-card" id="flag-tab-familias" type="button" aria-pressed="false" tabindex="-1">
+<span class="flag-card__top"><b aria-hidden="true">05</b><i aria-hidden="true">↗</i></span>
+<span class="flag-card__title">Valorização das famílias</span>
+<span class="flag-card__summary">Políticas e iniciativas voltadas ao fortalecimento das famílias.</span>
+</button>
+
+<button class="flag-card" id="flag-tab-identidade" type="button" aria-pressed="false" tabindex="-1">
+<span class="flag-card__top"><b aria-hidden="true">06</b><i aria-hidden="true">↗</i></span>
+<span class="flag-card__title">História e identidade</span>
+<span class="flag-card__summary">Preservação da história, da cultura e da identidade de Cidade Ocidental.</span>
+</button>
+</div>
 </div>
 </section>
 <section class="position section">
@@ -730,6 +766,16 @@
 <button class="dialog-close-button" type="button" data-close-dialog>Fechar</button>
 </div>
 </dialog>
+</section>
+<section class="phones-home-cta section" aria-labelledby="phones-home-title">
+<div class="wrap phones-home-cta__inner reveal">
+<div>
+<p class="eyebrow">UTILIDADE PÚBLICA</p>
+<h2 id="phones-home-title">Precisa de um contato importante?</h2>
+<p>Polícia, SAMU, Bombeiros, Hospital, assistência social e outros serviços de Cidade Ocidental em um só lugar.</p>
+</div>
+<a class="btn" href="/telefones-uteis"><span>Ver Telefones Úteis</span><b aria-hidden="true">→</b></a>
+</div>
 </section>
 </main>
 <footer class="footer">

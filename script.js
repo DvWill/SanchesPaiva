@@ -56,7 +56,34 @@ else{
   document.querySelectorAll('.reveal').forEach(el=>revealObserver.observe(el));
 }
 motionQuery.addEventListener('change',e=>{if(e.matches)revealAll()});
-document.querySelectorAll('.flag-track button').forEach(button=>button.addEventListener('click',()=>{document.querySelectorAll('.flag-track button').forEach(b=>b.classList.remove('active'));button.classList.add('active');document.querySelector('.flag-copy').textContent=button.dataset.copy}));
+const flagSection=document.querySelector('.flags');
+if(flagSection){
+  const cards=[...flagSection.querySelectorAll('.flag-card')];
+  function selectFlag(card){
+    if(!card)return;
+    cards.forEach(item=>{
+      const selected=item===card;
+      item.classList.toggle('active',selected);
+      item.setAttribute('aria-pressed',String(selected));
+      item.tabIndex=selected?0:-1;
+    });
+  }
+
+  cards.forEach((card,index)=>{
+    card.addEventListener('click',()=>selectFlag(card));
+    card.addEventListener('keydown',event=>{
+      let next=index;
+      if(event.key==='ArrowRight'||event.key==='ArrowDown')next=(index+1)%cards.length;
+      else if(event.key==='ArrowLeft'||event.key==='ArrowUp')next=(index-1+cards.length)%cards.length;
+      else if(event.key==='Home')next=0;
+      else if(event.key==='End')next=cards.length-1;
+      else return;
+      event.preventDefault();
+      cards[next].focus();
+      selectFlag(cards[next]);
+    });
+  });
+}
 const form=document.querySelector('#formulario'),errors={nome:'Informe seu nome.',telefone:'Informe seu telefone.',bairro:'Informe seu bairro.',assunto:'Informe o assunto.',mensagem:'Escreva sua mensagem.'};
 if(form){function validate(){let valid=true;form.querySelectorAll('.input').forEach(group=>{const field=group.querySelector('input,textarea'),empty=!field.value.trim();group.classList.toggle('invalid',empty);group.querySelector('small').textContent=empty?errors[field.name]:'';if(empty)valid=false});const consent=form.elements.consentimento.checked;form.querySelector('.consent-error').textContent=consent?'':'É necessário autorizar o tratamento dos dados.';return valid&&consent}form.addEventListener('input',e=>{const group=e.target.closest('.input');if(group&&e.target.value.trim()){group.classList.remove('invalid');group.querySelector('small').textContent=''}});form.addEventListener('submit',e=>{e.preventDefault();const status=form.querySelector('.form-status');status.className='form-status full';status.textContent='';if(!validate()){form.querySelector('.invalid input,.invalid textarea')?.focus();return}status.classList.add('notice');status.textContent=data.formEndpoint?'A integração está cadastrada, mas o envio deve ser conectado ao serviço definido.':'Mensagem ainda não enviada: a integração de recebimento precisa ser configurada pela equipe do mandato.'})}
 const year=document.querySelector('#year');if(year)year.textContent=new Date().getFullYear();

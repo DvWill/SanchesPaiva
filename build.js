@@ -4,7 +4,7 @@ const root=__dirname;
 const dist=path.join(root,'dist');
 fs.rmSync(dist,{recursive:true,force:true});
 fs.mkdirSync(dist,{recursive:true});
-for(const file of ['index.html','blog.html','post.html','privacidade.html','styles.css','blog.css','blog-fixes.css','post.css','employment-post.css','religious-post.css','admin.css','script.js','partnerships.js','citizen.js','citizen-admin.js','home-news.js','data.js','supabase.js','editorial-posts.js','blog.js','post.js','admin.js'])fs.copyFileSync(path.join(root,file),path.join(dist,file));
+for(const file of ['index.html','blog.html','post.html','privacidade.html','telefones-uteis.html','styles.css','blog.css','blog-fixes.css','post.css','employment-post.css','religious-post.css','telefones-uteis.css','admin.css','script.js','partnerships.js','citizen.js','citizen-admin.js','home-news.js','telefones-uteis.js','data.js','supabase.js','editorial-posts.js','blog.js','post.js','admin.js'])fs.copyFileSync(path.join(root,file),path.join(dist,file));
 fs.cpSync(path.join(root,'assets'),path.join(dist,'assets'),{recursive:true});
 fs.cpSync(path.join(root,'admin'),path.join(dist,'admin'),{recursive:true});
 fs.copyFileSync(path.join(root,'_redirects'),path.join(dist,'_redirects'));
