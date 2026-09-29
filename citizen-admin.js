@@ -1,5 +1,5 @@
 (() => {
-  const CATEGORIES = ['Iluminação pública','Buracos e pavimentação','Limpeza urbana','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro'];
+  const CATEGORIES = ['Iluminação pública','Buracos e pavimentação','Limpeza urbana','Meio ambiente','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro'];
   const STATUS_LABELS = {
     RECEBIDO: 'Recebido',
     EM_ANALISE: 'Em análise',

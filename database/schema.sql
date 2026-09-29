@@ -58,7 +58,7 @@ create table if not exists citizen_requests(
   instagram varchar(31),
   birthday_day smallint check(birthday_day between 1 and 31),
   birthday_month smallint check(birthday_month between 1 and 12),
-  category varchar(80) not null check(category in ('Iluminação pública','Buracos e pavimentação','Limpeza urbana','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro')),
+  category varchar(80) not null check(category in ('Iluminação pública','Buracos e pavimentação','Limpeza urbana','Meio ambiente','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro')),
   category_other varchar(100),
   message varchar(3000) not null,
   privacy_consent_at timestamptz not null,
@@ -96,6 +96,7 @@ alter table citizen_requests add column if not exists email varchar(160);
 alter table citizen_requests add column if not exists subject varchar(160);
 alter table citizen_requests drop constraint if exists citizen_requests_protocol_check;
 alter table citizen_requests drop constraint if exists citizen_requests_phone_normalized_check;
+alter table citizen_requests drop constraint if exists citizen_requests_category_check;
 alter table citizen_requests drop constraint if exists citizen_requests_status_check;
 alter table citizen_request_updates drop constraint if exists citizen_request_updates_status_check;
 alter table citizen_request_updates drop constraint if exists citizen_request_updates_previous_status_check;
@@ -165,6 +166,8 @@ alter table citizen_requests add constraint citizen_requests_protocol_check
   check(protocol ~ '^AS-[0-9]{8}-[A-Z0-9]{6}$');
 alter table citizen_requests add constraint citizen_requests_phone_normalized_check
   check(phone_normalized ~ '^[0-9]{10,11}$');
+alter table citizen_requests add constraint citizen_requests_category_check
+  check(category in ('Iluminação pública','Buracos e pavimentação','Limpeza urbana','Meio ambiente','Saúde','Educação','Transporte','Segurança','Esporte e lazer','Emprego e empreendedorismo','Sugestão','Outro'));
 alter table citizen_request_updates alter column status type varchar(24);
 alter table citizen_request_updates alter column previous_status type varchar(24);
 alter table citizen_requests add constraint citizen_requests_status_check

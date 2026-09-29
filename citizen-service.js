@@ -5,6 +5,7 @@ const CATEGORIES = Object.freeze([
   'Iluminação pública',
   'Buracos e pavimentação',
   'Limpeza urbana',
+  'Meio ambiente',
   'Saúde',
   'Educação',
   'Transporte',

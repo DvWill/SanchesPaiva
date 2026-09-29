@@ -344,7 +344,9 @@
     addSummary(summary, 'Status atual', request.status_label || STEPS.find((step) => step.code === request.status)?.label || request.status);
     lookupResult.append(title, summary);
 
-    const currentIndex = Math.max(0, STEPS.findIndex((step) => step.code === request.status));
+    const terminalStatusToHide = request.status === 'CANCELADO' ? 'CONCLUIDO' : 'CANCELADO';
+    const timelineSteps = STEPS.filter((step) => step.code !== terminalStatusToHide);
+    const currentIndex = Math.max(0, timelineSteps.findIndex((step) => step.code === request.status));
     const updatesByStatus = new Map();
     for (const update of request.history || []) {
       if (!updatesByStatus.has(update.status)) updatesByStatus.set(update.status, []);
@@ -354,7 +356,7 @@
     timelineTitle.textContent = 'Andamento';
     const timeline = document.createElement('ol');
     timeline.className = 'public-timeline';
-    STEPS.forEach((step, index) => {
+    timelineSteps.forEach((step, index) => {
       const item = document.createElement('li');
       item.className = index < currentIndex ? 'is-complete' : index === currentIndex ? 'is-current' : 'is-future';
       if (index === currentIndex) item.setAttribute('aria-current', 'step');

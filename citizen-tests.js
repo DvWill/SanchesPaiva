@@ -1,6 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('fs');
 const {
+  CATEGORIES,
   STATUSES,
   STATUS_LABELS,
   cleanText,
@@ -48,6 +49,7 @@ assert(!cleanText('<script>\u0000alert(1)</script>', 100).includes('\u0000'), 'C
 
 assert.deepEqual(STATUSES, ['RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO']);
 assert.equal(STATUS_LABELS.AGUARDANDO_CLIENTE, 'Aguardando cliente');
+assert(CATEGORIES.includes('Meio ambiente'), 'Categoria Meio ambiente ausente');
 const protocols = new Set(Array.from({length:5000}, () => createProtocol(new Date('2026-09-21T12:00:00-03:00'))));
 assert.equal(protocols.size, 5000, 'Protocolos aleatórios repetidos no teste');
 for (const protocol of protocols) assert(/^AS-20260921-[A-Z0-9]{6}$/.test(protocol), `Formato inválido: ${protocol}`);
@@ -75,7 +77,7 @@ assert(adminSource.includes('visibility') && adminSource.includes('observation')
 assert(STATUSES.every((status) => schema.includes(status)), 'Status obrigatório ausente no banco');
 assert(html.includes('name="email"') && html.includes('E-mail <em>Opcional</em>'), 'E-mail opcional ausente');
 assert(html.includes('privacy_consent') && html.includes('marketing_consent'), 'Consentimentos separados ausentes');
-assert(clientSource.includes('STEPS.forEach') && clientSource.includes('is-current') && clientSource.includes('is-future'), 'Linha do tempo fixa não foi implementada');
+assert(clientSource.includes("request.status === 'CANCELADO' ? 'CONCLUIDO' : 'CANCELADO'") && clientSource.includes('timelineSteps.forEach') && clientSource.includes('is-current') && clientSource.includes('is-future'), 'Linha do tempo condicional não foi implementada');
 assert(css.includes('@media(max-width:720px)') && css.includes('.public-timeline li'), 'Responsividade do atendimento ausente');
 assert(schema.includes('citizen_requests_protocol_idx') && schema.includes('protocol varchar(24) unique not null'), 'Unicidade ou índice de protocolo ausente');
 assert(schema.includes('enable row level security') && schema.includes('revoke all on citizen_requests'), 'RLS ou bloqueio de acesso público direto ausente');
