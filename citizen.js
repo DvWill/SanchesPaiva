@@ -23,6 +23,7 @@
   const birthdayMonth = form.elements.birthday_month;
   const submitButton = form.querySelector('[type="submit"]');
   const submitLabel = submitButton.querySelector('span');
+  const attachmentUploader = window.createCitizenAttachmentUploader?.(document.querySelector('#demand-attachments'));
   let submissionKey = null;
   let isSubmitting = false;
   let isLookingUp = false;
@@ -98,6 +99,15 @@
         statusText: response.statusText,
         response: data
       });
+      if (data?.fields && isDevelopment) {
+        let submitted = {};
+        try { submitted = typeof options.body === 'string' ? JSON.parse(options.body) : {}; } catch {}
+        Object.entries(data.fields).forEach(([field, error]) => console.error('Erro de validação', {
+          field,
+          value: submitted[field],
+          error
+        }));
+      }
       const error = new Error(data?.error || data?.message || `Erro HTTP ${response.status}: ${response.statusText}`);
       error.fields = data?.fields || {};
       error.status = response.status;
@@ -249,14 +259,37 @@
     }
     const submittedPhone = form.elements.phone.value;
     submitButton.disabled = true;
+    attachmentUploader?.setBusy(true);
     submitButton.classList.add('is-loading');
     submitButton.setAttribute('aria-busy', 'true');
-    submitLabel.textContent = 'Registrando demanda…';
+    submitLabel.textContent = attachmentUploader?.count ? 'Preparando arquivos…' : 'Registrando demanda…';
     status.className = 'form-status full';
-    status.textContent = 'Salvando sua demanda com segurança…';
+    status.textContent = attachmentUploader?.count ? 'Preparando o envio seguro dos anexos…' : 'Salvando sua demanda com segurança…';
     await new Promise((resolve) => requestAnimationFrame(resolve));
     try {
-      const result = await api('/api/citizen/requests', { method: 'POST', body: JSON.stringify(payload) });
+      let result;
+      if (attachmentUploader?.count) {
+        const plan = await api('/api/citizen/requests/upload-plan', {
+          method: 'POST',
+          body: JSON.stringify({ ...payload, attachments: attachmentUploader.metadata() })
+        });
+        if (plan.complete) {
+          result = plan;
+        } else {
+          submitLabel.textContent = 'Enviando arquivos…';
+          await attachmentUploader.upload(plan.uploads, (current, total, filename) => {
+            status.textContent = `Enviando arquivos… ${current} de ${total}: ${filename}`;
+          });
+          submitLabel.textContent = 'Registrando demanda…';
+          status.textContent = 'Arquivos enviados. Salvando sua demanda com segurança…';
+          result = await api('/api/citizen/requests', {
+            method: 'POST',
+            body: JSON.stringify({ submission_key: payload.submission_key, upload_session_id: plan.upload_session_id })
+          });
+        }
+      } else {
+        result = await api('/api/citizen/requests', { method: 'POST', body: JSON.stringify(payload) });
+      }
       if (!/^AS-\d{8}-[A-Z0-9]{6}$/.test(result.protocol || '') || !/^https:\/\/wa\.me\/\d+\?text=/.test(result.whatsapp_url || '')) {
         throw new Error('Resposta inválida do serviço de demandas.');
       }
@@ -268,6 +301,7 @@
       status.classList.add('success');
       status.textContent = `Demanda enviada com sucesso. Protocolo: ${result.protocol}`;
       form.reset();
+      attachmentUploader?.reset();
       toggleOtherCategory();
       submissionKey = null;
       if (typeof successDialog.showModal === 'function') successDialog.showModal();
@@ -279,7 +313,8 @@
       if (isDevelopment) console.error('Falha ao registrar demanda:', error);
       Object.entries(error.fields || {}).forEach(([name, message]) => setError(form, name, message));
       status.classList.add('error');
-      status.textContent = Object.keys(error.fields || {}).length || error.status === 400 || error.status === 429
+      const attachmentError = attachmentUploader?.count && (!error.status || /^(ATTACHMENT_|UPLOAD_)/.test(error.code || ''));
+      status.textContent = Object.keys(error.fields || {}).length || error.status === 400 || error.status === 429 || attachmentError
         ? error.message
         : 'Não foi possível registrar sua demanda. Tente novamente.';
       const first = Object.keys(error.fields || {})[0];
@@ -287,6 +322,7 @@
     } finally {
       isSubmitting = false;
       submitButton.disabled = false;
+      attachmentUploader?.setBusy(false);
       submitButton.classList.remove('is-loading');
       submitButton.removeAttribute('aria-busy');
       submitLabel.textContent = 'Registrar demanda e abrir WhatsApp';

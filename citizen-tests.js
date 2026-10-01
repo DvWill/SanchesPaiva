@@ -8,9 +8,10 @@ const {
   normalizePhone,
   normalizeEmail,
   validateCitizenRequest,
-  createProtocol,
+  formatSequentialProtocol,
   createWhatsAppUrl
 } = require('./citizen-service');
+const { validateAttachmentDescriptors, createAttachmentPlan } = require('./citizen-attachments-service');
 
 const validPayload = {
   name: 'Maria da Silva',
@@ -50,15 +51,28 @@ assert(!cleanText('<script>\u0000alert(1)</script>', 100).includes('\u0000'), 'C
 assert.deepEqual(STATUSES, ['RECEBIDO','EM_ANALISE','EM_ANDAMENTO','AGUARDANDO_CLIENTE','CONCLUIDO','CANCELADO']);
 assert.equal(STATUS_LABELS.AGUARDANDO_CLIENTE, 'Aguardando cliente');
 assert(CATEGORIES.includes('Meio ambiente'), 'Categoria Meio ambiente ausente');
-const protocols = new Set(Array.from({length:5000}, () => createProtocol(new Date('2026-09-21T12:00:00-03:00'))));
-assert.equal(protocols.size, 5000, 'Protocolos aleatórios repetidos no teste');
-for (const protocol of protocols) assert(/^AS-20260921-[A-Z0-9]{6}$/.test(protocol), `Formato inválido: ${protocol}`);
+assert.equal(formatSequentialProtocol('20260921', 1), 'AS-20260921-000001');
+assert.equal(formatSequentialProtocol('20260921', 999999), 'AS-20260921-999999');
+assert.throws(() => formatSequentialProtocol('20260921', 0), /invalid_protocol_sequence/);
 
 const whatsapp = createWhatsAppUrl({...valid.data,protocol:'AS-20260921-K7M4Q2',created_at:'2026-09-21T15:00:00Z'});
-const whatsappText = decodeURIComponent(whatsapp);
+const whatsappText = new URL(whatsapp).searchParams.get('text');
 assert(whatsapp.startsWith('https://wa.me/5561998451844?text='), 'Número oficial do WhatsApp incorreto');
-assert(whatsappText.includes('AS-20260921-K7M4Q2') && whatsappText.includes('Assunto: Poste apagado na Rua 10') && whatsappText.includes('Categoria: Iluminação pública'), 'Mensagem do WhatsApp incompleta');
-assert(!whatsappText.includes('Instagram') && !whatsappText.includes('aniversário'), 'Dados opcionais vazaram para o WhatsApp');
+assert.equal(whatsappText,'Olá! Registrei uma demanda pelo Alô, Sanches. Meu protocolo é AS-20260921-K7M4Q2.','Mensagem do WhatsApp deve conter somente o protocolo');
+const whatsappWithAttachments = createWhatsAppUrl({...valid.data,protocol:'AS-20260921-K7M4Q2',attachment_count:3,attachments:[{},{}]});
+assert.equal(whatsappWithAttachments,whatsapp,'Presença de anexos alterou a mensagem enviada ao WhatsApp');
+
+const attachmentDescriptors = [
+  {client_id:'51994d24-6c1c-4afb-9e2d-4c39d9a1568c',name:'rua alagada.jpg',size:Math.round(2.4*1024*1024)},
+  {client_id:'61994d24-6c1c-4afb-9e2d-4c39d9a1568c',name:'problema.MOV',size:Math.round(18.7*1024*1024)}
+];
+const validAttachments = validateAttachmentDescriptors(attachmentDescriptors);
+assert(validAttachments.valid && validAttachments.files[0].type==='image' && validAttachments.files[1].type==='video','Anexos válidos foram recusados');
+assert(!validateAttachmentDescriptors([{...attachmentDescriptors[0],name:'documento.pdf'}]).valid,'Extensão de anexo não permitida foi aceita');
+assert(!validateAttachmentDescriptors([{...attachmentDescriptors[0],size:11*1024*1024}]).valid,'Imagem acima de 10 MB foi aceita');
+assert(!validateAttachmentDescriptors(Array.from({length:6},(_,index)=>({...attachmentDescriptors[0],client_id:`${index}1994d24-6c1c-4afb-9e2d-4c39d9a1568c`}))).valid,'Mais de cinco anexos foram aceitos');
+const attachmentPlan=createAttachmentPlan('AS-20260921-K7M4Q2',validAttachments.files);
+assert(attachmentPlan.every((item)=>item.storage_path.startsWith('demandas/AS-20260921-K7M4Q2/')),'Caminho dos anexos não usa o protocolo');
 
 const serverSource = fs.readFileSync('server.js','utf8');
 const clientSource = fs.readFileSync('citizen.js','utf8');
@@ -68,19 +82,27 @@ const css = fs.readFileSync('styles.css','utf8');
 const schema = fs.readFileSync('database/schema.sql','utf8');
 
 assert(serverSource.includes("app.post('/api/citizen/requests'") && serverSource.includes("app.post('/api/citizen/lookup'"), 'Endpoints públicos ausentes');
-assert(serverSource.includes('on conflict do nothing returning *') && serverSource.includes('submission_key'), 'Proteção contra envio duplicado ausente');
+assert(serverSource.includes('citizen_protocol_sequences') && serverSource.includes('reserveProtocol') && serverSource.includes('protocolRetryLimit'), 'Reserva atômica e retry de protocolo ausentes');
 assert(serverSource.includes('DATABASE_INSERT_FAILED') && clientSource.indexOf("window.open('', '_blank')") < clientSource.indexOf("api('/api/citizen/requests'"), 'Reserva da janela do WhatsApp ausente ou tardia');
 assert(clientSource.includes('whatsappWindow.location.replace(result.whatsapp_url)') && clientSource.includes('whatsappWindow?.close()'), 'WhatsApp não depende do sucesso persistido');
+assert(clientSource.includes("console.error('Erro de validação'") && serverSource.includes("console.error('Erro de validação'"), 'Falhas de validação não identificam o campo no console/log');
 assert(serverSource.includes('protocol=$1 and phone_normalized=$2'), 'Consulta não exige protocolo e telefone');
 assert(serverSource.includes("app.patch('/api/admin/citizen-requests/:id'") && serverSource.includes('STATUS_REGRESSION_CONFIRMATION_REQUIRED'), 'Atualização administrativa não protege regressão de status');
 assert(adminSource.includes('visibility') && adminSource.includes('observation') && adminSource.includes('admin_email'), 'Painel não separa observação pública e interna');
 assert(STATUSES.every((status) => schema.includes(status)), 'Status obrigatório ausente no banco');
 assert(html.includes('name="email"') && html.includes('E-mail <em>Opcional</em>'), 'E-mail opcional ausente');
 assert(html.includes('privacy_consent') && html.includes('marketing_consent'), 'Consentimentos separados ausentes');
+assert(html.includes('Fotos ou vídeos da demanda — opcional') && html.includes('data-attachment-dropzone') && html.includes('multiple'), 'Interface de anexos ausente ou incompleta');
+assert(clientSource.includes("'/api/citizen/requests/upload-plan'") && clientSource.includes('Enviando arquivos…'), 'Fluxo de upload do formulário ausente');
+assert(serverSource.includes('citizen_request_attachments') && serverSource.includes('verifyUploadedAttachments'), 'Persistência segura dos anexos ausente');
+assert(adminSource.includes('request.attachments') && adminSource.includes('demand-attachment'), 'Exibição administrativa dos anexos ausente');
 assert(clientSource.includes("request.status === 'CANCELADO' ? 'CONCLUIDO' : 'CANCELADO'") && clientSource.includes('timelineSteps.forEach') && clientSource.includes('is-current') && clientSource.includes('is-future'), 'Linha do tempo condicional não foi implementada');
 assert(css.includes('@media(max-width:720px)') && css.includes('.public-timeline li'), 'Responsividade do atendimento ausente');
-assert(schema.includes('citizen_requests_protocol_idx') && schema.includes('protocol varchar(24) unique not null'), 'Unicidade ou índice de protocolo ausente');
+assert(schema.includes('citizen_requests_protocol_idx') && schema.includes('protocol varchar(24) unique not null') && schema.includes('citizen_protocol_sequences'), 'Unicidade ou sequência de protocolo ausente');
+assert(schema.includes('select protocol from citizen_upload_sessions') && schema.includes('greatest(citizen_protocol_sequences.next_value,excluded.next_value)'), 'Contador não foi reconciliado com protocolos já reservados');
+assert(serverSource.includes('on conflict(protocol_date) do update') && serverSource.includes('greatest(citizen_protocol_sequences.next_value,excluded.next_value-1)+1'), 'Alocação do protocolo não é atômica ou não avança além dos protocolos existentes');
 assert(schema.includes('enable row level security') && schema.includes('revoke all on citizen_requests'), 'RLS ou bloqueio de acesso público direto ausente');
+assert(schema.includes('create table if not exists citizen_request_attachments') && schema.includes('create table if not exists citizen_upload_sessions'), 'Estrutura de banco dos anexos ausente');
 assert(fs.readFileSync('api/index.js','utf8').includes("require('../server')"), 'Entrada serverless da Vercel ausente');
 assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js'], 'Função serverless não configurada');
 
@@ -101,11 +123,22 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
   const submission = {...validPayload,submission_key:'01994d24-6c1c-4afb-9e2d-4c39d9a1568c'};
   try {
     let storedRequest;
+    let nextProtocolSequence = 1;
     pool.query = async (sql) => {
+      if (sql.startsWith('with protocol_day as')) return {rows:[{date_key:'20260921',sequence:nextProtocolSequence++}]};
       if (sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[]};
+      if (sql.startsWith('select r.*')) return {rows:[]};
       if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
       throw new Error(`Consulta inesperada: ${sql}`);
     };
+    const validationLogs=[];
+    console.error=(...args)=>validationLogs.push(args);
+    let response=await post('/api/citizen/requests',{...submission,phone:'123',email:'invalido'});
+    let body=await response.json();
+    assert.equal(response.status,400,'Telefone e e-mail inválidos foram aceitos');
+    assert(validationLogs.some(([message,details])=>message==='Erro de validação'&&details.field==='phone'&&details.value==='123'&&details.error),'Log da validação não identificou telefone, valor e erro');
+    assert(validationLogs.some(([message,details])=>message==='Erro de validação'&&details.field==='email'&&details.value==='invalido'&&details.error),'Log da validação não identificou e-mail, valor e erro');
+    console.error=originalError;
     pool.connect = async () => ({
       async query(sql,params) {
         if (sql === 'begin' || sql === 'commit' || sql === 'rollback') return {rows:[]};
@@ -138,12 +171,118 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
       },
       release() {}
     });
-    let response = await post('/api/citizen/requests', submission);
-    let body = await response.json();
+    response = await post('/api/citizen/requests', submission);
+    body = await response.json();
     assert.equal(response.status,201,'Cadastro válido não foi persistido');
     assert(/^AS-[0-9]{8}-[A-Z0-9]{6}$/.test(body.protocol) && body.whatsapp_url,'Cadastro não retornou protocolo e WhatsApp');
     assert.equal(storedRequest.email,'maria@example.com');
     assert.equal(storedRequest.status,'RECEBIDO');
+
+    let retryAttempts = 0;
+    pool.query = async (sql) => {
+      if (sql.startsWith('with protocol_day as')) return {rows:[{date_key:'20260921',sequence:nextProtocolSequence++}]};
+      if (sql.startsWith('select * from citizen_requests where submission_key') || sql.startsWith('select r.*')) return {rows:[]};
+      if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
+      throw new Error(`Consulta inesperada durante retry: ${sql}`);
+    };
+    pool.connect = async () => ({
+      async query(sql,params) {
+        if (sql === 'begin' || sql === 'commit' || sql === 'rollback') return {rows:[]};
+        if (sql.startsWith('insert into citizen_requests') && retryAttempts++ === 0) {
+          const error = new Error('duplicate key value violates unique constraint "citizen_requests_protocol_key"');
+          error.code = '23505';
+          error.constraint = 'citizen_requests_protocol_key';
+          throw error;
+        }
+        if (sql.startsWith('insert into citizen_requests')) return {rows:[{...storedRequest,id:'31994d24-6c1c-4afb-9e2d-4c39d9a1568c',protocol:params[1]}]};
+        if (sql.startsWith('select 1 from citizen_request_updates')) return {rows:[]};
+        if (sql.startsWith('insert into citizen_request_updates')) return {rows:[]};
+        throw new Error(`Consulta transacional inesperada durante retry: ${sql}`);
+      },
+      release() {}
+    });
+    response = await post('/api/citizen/requests', {...submission,submission_key:'21994d24-6c1c-4afb-9e2d-4c39d9a1568c'});
+    body = await response.json();
+    assert.equal(response.status,201,'Colisão de protocolo não foi repetida automaticamente');
+    assert.equal(retryAttempts,2,'Backend não tentou um novo protocolo após colisão');
+    assert.notEqual(body.protocol,storedRequest.protocol,'Retry reutilizou protocolo já existente');
+
+    let rapidInsertCount = 0;
+    pool.query = async (sql) => {
+      if (sql.startsWith('with protocol_day as')) return {rows:[{date_key:'20260921',sequence:nextProtocolSequence++}]};
+      if (sql.startsWith('select * from citizen_requests where submission_key') || sql.startsWith('select r.*')) return {rows:[]};
+      if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
+      throw new Error(`Consulta inesperada durante envios rápidos: ${sql}`);
+    };
+    pool.connect = async () => ({
+      async query(sql,params) {
+        if (sql === 'begin' || sql === 'commit' || sql === 'rollback') return {rows:[]};
+        if (sql.startsWith('insert into citizen_requests')) return {rows:[{...storedRequest,id:`41994d24-6c1c-4afb-9e2d-4c39d9a1568${++rapidInsertCount}`,protocol:params[1]}]};
+        if (sql.startsWith('select 1 from citizen_request_updates')) return {rows:[]};
+        if (sql.startsWith('insert into citizen_request_updates')) return {rows:[]};
+        throw new Error(`Consulta transacional inesperada durante envios rápidos: ${sql}`);
+      },
+      release() {}
+    });
+    const rapidResponses = await Promise.all(Array.from({length:5},(_,index)=>post('/api/citizen/requests',{...submission,submission_key:`51994d24-6c1c-4afb-9e2d-4c39d9a1568${index}`})));
+    const rapidBodies = await Promise.all(rapidResponses.map((item)=>item.json()));
+    assert(rapidResponses.every((item)=>item.status===201),'Envios rápidos válidos não foram concluídos');
+    assert.equal(new Set(rapidBodies.map((item)=>item.protocol)).size,rapidBodies.length,'Envios rápidos receberam protocolos repetidos');
+
+    const savedSupabaseUrl=process.env.SUPABASE_URL,savedServiceRoleKey=process.env.SUPABASE_SERVICE_ROLE_KEY;
+    delete process.env.SUPABASE_URL;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
+    let uploadSession=null;
+    let uploadBlobs=new Map();
+    const savedAttachmentRows=[];
+    pool.query = async (sql,params=[]) => {
+      if (sql.startsWith('with protocol_day as')) return {rows:[{date_key:'20260921',sequence:nextProtocolSequence++}]};
+      if (sql.startsWith('select * from citizen_requests where submission_key') || sql.startsWith('select r.*')) return {rows:[]};
+      if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
+      if (sql.startsWith('select attachments from citizen_upload_sessions where expires_at<now()')) return {rows:[]};
+      if (sql.startsWith('delete from citizen_upload_sessions where expires_at<now()')) return {rows:[]};
+      if (sql.startsWith('select * from citizen_upload_sessions where submission_key=$1 and expires_at>now()')) return {rows:[]};
+      if (sql.startsWith('select * from citizen_upload_sessions where id=$1 and submission_key=$2')) return {rows:[uploadSession]};
+      if (sql.startsWith('select attachments from citizen_upload_sessions where attachments @>')) return {rows:[{attachments:uploadSession.attachments}]};
+      if (sql.startsWith('insert into citizen_attachment_blobs')) {
+        uploadBlobs.set(params[0],{storage_path:params[0],mime_type:params[1],size_bytes:params[2]});
+        return {rows:[]};
+      }
+      if (sql.startsWith('select storage_path,mime_type,size_bytes from citizen_attachment_blobs')) return {rows:params[0].map((storagePath)=>uploadBlobs.get(storagePath)).filter(Boolean)};
+      throw new Error(`Consulta inesperada no teste de anexos: ${sql}`);
+    };
+    pool.connect = async () => ({
+      async query(sql,params) {
+        if (sql === 'begin' || sql === 'commit' || sql === 'rollback') return {rows:[]};
+        if (sql.startsWith('select * from citizen_upload_sessions where submission_key=$1 for update')) return {rows:[]};
+        if (sql.startsWith('insert into citizen_upload_sessions')) {
+          uploadSession={id:'61994d24-6c1c-4afb-9e2d-4c39d9a1568c',submission_key:params[0],protocol:params[1],phone_normalized:params[2],request_data:JSON.parse(params[3]),attachments:JSON.parse(params[4]),expires_at:new Date(Date.now()+3600000)};
+          return {rows:[uploadSession]};
+        }
+        if (sql.startsWith('insert into citizen_requests')) return {rows:[{...storedRequest,id:'71994d24-6c1c-4afb-9e2d-4c39d9a1568c',protocol:params[1],created_at:'2026-09-21T15:00:00Z'}]};
+        if (sql.startsWith('select 1 from citizen_request_updates')) return {rows:[]};
+        if (sql.startsWith('insert into citizen_request_updates')) return {rows:[]};
+        if (sql.startsWith('insert into citizen_request_attachments')) {savedAttachmentRows.push(params);return {rows:[]};}
+        if (sql.startsWith('delete from citizen_upload_sessions')) return {rows:[]};
+        throw new Error(`Consulta transacional inesperada no teste de anexos: ${sql}`);
+      },
+      release() {}
+    });
+    for (const [index,file] of [{name:'foto.jpg',type:'image/jpeg',size:4},{name:'video.mp4',type:'video/mp4',size:6}].entries()) {
+      const attachmentSubmission={...submission,submission_key:`81994d24-6c1c-4afb-9e2d-4c39d9a1568${index}`};
+      const planResponse=await post('/api/citizen/requests/upload-plan',{...attachmentSubmission,attachments:[{client_id:`91994d24-6c1c-4afb-9e2d-4c39d9a1568${index}`,name:file.name,size:file.size}]});
+      const plan=await planResponse.json();
+      assert.equal(planResponse.status,201,`upload-plan recusou ${file.name}`);
+      const uploadResponse=await fetch(`${base}${plan.uploads[0].signed_url}`,{method:'PUT',headers:{'Content-Type':file.type},body:Buffer.alloc(file.size,1)});
+      assert.equal(uploadResponse.status,204,`Upload local falhou para ${file.name}`);
+      const savedResponse=await post('/api/citizen/requests',{submission_key:attachmentSubmission.submission_key,upload_session_id:plan.upload_session_id});
+      const savedBody=await savedResponse.json();
+      assert.equal(savedResponse.status,201,`Demanda com ${file.type} não foi registrada`);
+      assert.equal(savedBody.attachment_count,1,`Anexo ${file.name} não foi associado à demanda`);
+    }
+    assert.deepEqual(savedAttachmentRows.map((params)=>params[1]),['image','video'],'Tipos de anexo foram persistidos incorretamente');
+    process.env.SUPABASE_URL=savedSupabaseUrl;
+    process.env.SUPABASE_SERVICE_ROLE_KEY=savedServiceRoleKey;
 
     pool.query = async (sql) => {
       if (sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[storedRequest]};
@@ -164,14 +303,21 @@ assert(JSON.parse(fs.readFileSync('vercel.json','utf8')).functions['api/index.js
     assert(!body.protocol && !body.whatsapp_url,'Falha no banco retornou protocolo ou WhatsApp');
 
     pool.query = async (sql) => {
+      if (sql.startsWith('with protocol_day as')) return {rows:[{date_key:'20260921',sequence:nextProtocolSequence++}]};
       if (sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[]};
+      if (sql.startsWith('select r.*')) return {rows:[]};
       if (sql.startsWith('insert into citizen_rate_limits')) return {rows:[{hits:1}]};
       throw new Error(`Consulta inesperada: ${sql}`);
     };
     pool.connect = async () => ({
       async query(sql) {
         if (sql === 'begin' || sql === 'rollback') return {rows:[]};
-        if (sql.startsWith('insert into citizen_requests') || sql.startsWith('select * from citizen_requests where submission_key')) return {rows:[]};
+        if (sql.startsWith('insert into citizen_requests')) {
+          const error = new Error('duplicate key value violates unique constraint "citizen_requests_protocol_key"');
+          error.code = '23505';
+          error.constraint = 'citizen_requests_protocol_key';
+          throw error;
+        }
         throw new Error(`Consulta transacional inesperada: ${sql}`);
       },
       release() {}

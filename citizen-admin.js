@@ -24,6 +24,7 @@
   };
   const categoryLabel = (request) => request.category === 'Outro' && request.category_other ? `Outro — ${request.category_other}` : request.category;
   const statusLabel = (status) => STATUS_LABELS[status] || status;
+  const formatSize = (bytes) => `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(Number(bytes || 0) / 1024 / 1024)} MB`;
   const fillOptions = (select, options, labels = {}) => options.forEach((value) => {
     const option = document.createElement('option');
     option.value = value;
@@ -130,6 +131,41 @@
     addDetail(data, 'Registrada em', formatDate(request.created_at));
     addDetail(data, 'Última atualização', formatDate(request.updated_at));
     addDetail(data, 'Encaminhada a', request.forwarded_to || 'Ainda não informado');
+    const attachmentSection = document.querySelector('#demand-attachments');
+    const attachmentList = document.querySelector('#demand-attachments-list');
+    const attachments = Array.isArray(request.attachments) ? request.attachments : [];
+    attachmentList.replaceChildren();
+    attachmentSection.hidden = attachments.length === 0;
+    document.querySelector('#demand-attachments-count').textContent = `${attachments.length} de 5`;
+    attachments.forEach((attachment) => {
+      const card = document.createElement(attachment.url ? 'a' : 'div');
+      card.className = 'demand-attachment';
+      if (attachment.url) {
+        card.href = attachment.url;
+        card.target = '_blank';
+        card.rel = 'noopener';
+        card.title = `Abrir ${attachment.name}`;
+      }
+      const media = document.createElement('div');
+      media.className = 'demand-attachment__media';
+      if (attachment.type === 'image' && attachment.url) {
+        const image = document.createElement('img');
+        image.src = attachment.url;
+        image.alt = '';
+        image.loading = 'lazy';
+        media.append(image);
+      } else {
+        media.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7a3 3 0 0 1 3 3v1.5l4-2v11l-4-2V17a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"/></svg>';
+      }
+      const details = document.createElement('div');
+      const name = document.createElement('strong');
+      const meta = document.createElement('span');
+      name.textContent = attachment.name;
+      meta.textContent = `${attachment.type === 'image' ? 'Imagem' : 'Vídeo'} · ${formatSize(attachment.size)}${attachment.url ? ' · Abrir' : ' · Indisponível'}`;
+      details.append(name, meta);
+      card.append(media, details);
+      attachmentList.append(card);
+    });
     updateForm.elements.status.value = request.status;
     updateForm.elements.forwarded_to.value = request.forwarded_to || '';
     const history = document.querySelector('#demand-history');

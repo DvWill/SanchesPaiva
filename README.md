@@ -16,6 +16,8 @@ Site institucional com blog, painel editorial e o canal de atendimento ao cidad�
 
 - `citizen_requests`: demanda principal, protocolo, contato, localização, categoria, consentimentos, situação e resposta pública.
 - `citizen_request_updates`: histórico de mudanças, com conteúdo público, anotação interna, encaminhamento e administrador responsável.
+- `citizen_request_attachments`: metadados dos anexos vinculados à demanda; os arquivos ficam em um bucket privado do Supabase Storage.
+- `citizen_upload_sessions`: autorizações temporárias usadas para enviar anexos antes de concluir a demanda.
 - `citizen_rate_limits`: limitação de cadastros e consultas por identificador pseudonimizado.
 - `admins` e `admin_sessions`: usuários administrativos e sessões autenticadas.
 
@@ -33,11 +35,16 @@ DATABASE_SSL_REJECT_UNAUTHORIZED=true
 ADMIN_EMAIL=admin@seudominio.com.br
 ADMIN_PASSWORD=troque-por-uma-senha-forte
 RATE_LIMIT_SECRET=gere-uma-frase-aleatoria-longa-e-secreta
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=chave-service-role-somente-no-servidor
+CITIZEN_ATTACHMENTS_BUCKET=citizen-demand-attachments
 TRUST_PROXY=1
 PORT=3000
 ```
 
 `DATABASE_URL`, `ADMIN_PASSWORD` e `RATE_LIMIT_SECRET` são segredos de servidor e nunca devem ser incluídos no frontend. Gere `RATE_LIMIT_SECRET` com pelo menos 32 caracteres aleatórios. Use `TRUST_PROXY=1` quando o aplicativo estiver atrás de um proxy confiável; use `0` no acesso local direto.
+
+`SUPABASE_SERVICE_ROLE_KEY` também é um segredo exclusivo do servidor. Quando o cidadão envia anexos, o backend cria autorizações temporárias de upload, confirma no Storage o tamanho e o tipo recebidos e só então grava a demanda. O bucket configurado em `CITIZEN_ATTACHMENTS_BUCKET` é criado como privado na primeira utilização; no painel, os arquivos são exibidos por URLs assinadas de curta duração.
 
 ## Primeiro administrador
 

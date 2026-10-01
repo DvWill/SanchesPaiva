@@ -1,5 +1,3 @@
-const crypto = require('crypto');
-
 const WHATSAPP_NUMBER = '5561998451844';
 const CATEGORIES = Object.freeze([
   'Iluminação pública',
@@ -127,12 +125,9 @@ function protocolDate(date = new Date()) {
   return `${value.year}${value.month}${value.day}`;
 }
 
-function createProtocol(date = new Date(), randomBytes = crypto.randomBytes) {
-  const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const bytes = randomBytes(6);
-  let suffix = '';
-  for (const byte of bytes) suffix += alphabet[byte % alphabet.length];
-  return `AS-${protocolDate(date)}-${suffix}`;
+function formatSequentialProtocol(dateKey, sequence) {
+  if (!/^\d{8}$/.test(String(dateKey)) || !Number.isSafeInteger(sequence) || sequence < 1 || sequence > 999999) throw new Error('invalid_protocol_sequence');
+  return `AS-${dateKey}-${String(sequence).padStart(6, '0')}`;
 }
 
 function displayCategory(request) {
@@ -146,29 +141,7 @@ function statusLabel(status) {
 }
 
 function createWhatsAppUrl(request) {
-  const createdAt = new Intl.DateTimeFormat('pt-BR', {
-    timeZone: 'America/Sao_Paulo', dateStyle: 'short', timeStyle: 'short'
-  }).format(new Date(request.created_at));
-  const text = [
-    'Olá, equipe do gabinete do vereador Sanches Paiva!',
-    '',
-    'Registrei uma solicitação pelo Alô, Sanches.',
-    '',
-    `Protocolo: ${request.protocol}`,
-    `Nome: ${request.name}`,
-    `Telefone: ${formatPhone(request.phone_normalized)}`,
-    `Bairro: ${request.neighborhood}`,
-    `Local da demanda: ${request.demand_location}`,
-    `Assunto: ${request.subject}`,
-    `Categoria: ${displayCategory(request)}`,
-    '',
-    'Demanda:',
-    request.message,
-    '',
-    `Data do registro: ${createdAt}`,
-    '',
-    'Gostaria de acompanhar o encaminhamento desta solicitação.'
-  ].join('\n');
+  const text = `Olá! Registrei uma demanda pelo Alô, Sanches. Meu protocolo é ${request.protocol}.`;
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(text)}`;
 }
 
@@ -185,7 +158,7 @@ module.exports = {
   isValidBirthday,
   validateCitizenRequest,
   protocolDate,
-  createProtocol,
+  formatSequentialProtocol,
   displayCategory,
   statusLabel,
   createWhatsAppUrl

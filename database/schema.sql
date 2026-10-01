@@ -85,6 +85,71 @@ create table if not exists citizen_request_updates(
   created_at timestamptz not null default now()
 );
 
+create table if not exists citizen_request_attachments(
+  id uuid primary key default gen_random_uuid(),
+  request_id uuid not null references citizen_requests(id) on delete cascade,
+  type varchar(10) not null check(type in ('image','video')),
+  storage_bucket varchar(100) not null,
+  storage_path varchar(500) not null,
+  original_name varchar(180) not null,
+  mime_type varchar(80) not null,
+  size_bytes bigint not null check(size_bytes > 0 and size_bytes <= 52428800),
+  created_at timestamptz not null default now(),
+  unique(request_id,storage_path)
+);
+
+create table if not exists citizen_upload_sessions(
+  id uuid primary key default gen_random_uuid(),
+  submission_key uuid unique not null,
+  protocol varchar(24) unique not null check(protocol ~ '^AS-[0-9]{8}-[A-Z0-9]{6}$'),
+  phone_normalized varchar(11) not null check(phone_normalized ~ '^[0-9]{10,11}$'),
+  request_data jsonb not null,
+  attachments jsonb not null check(jsonb_typeof(attachments)='array' and jsonb_array_length(attachments) between 1 and 5),
+  created_at timestamptz not null default now(),
+  expires_at timestamptz not null default now()+interval '2 hours'
+);
+
+-- Contador diário atômico, reservado pelo backend no formato AS-AAAAMMDD-000001.
+create table if not exists citizen_protocol_sequences(
+  protocol_date date primary key,
+  next_value bigint not null check(next_value between 1 and 1000000),
+  updated_at timestamptz not null default now()
+);
+
+-- Keep the atomic counter ahead of every protocol already assigned today.
+with existing_protocols as (
+  select protocol from citizen_requests
+  union all
+  select protocol from citizen_upload_sessions
+), current_day as (
+  select (now() at time zone 'America/Sao_Paulo')::date as protocol_date,
+         to_char(now() at time zone 'America/Sao_Paulo','YYYYMMDD') as date_key
+), sequence_seed as (
+  select day.protocol_date,
+         coalesce(max(case
+           when existing.protocol ~ '^AS-[0-9]{8}-[0-9]{6}$'
+           then substring(existing.protocol from 13 for 6)::bigint
+         end),0)+1 as next_value
+  from current_day day
+  left join existing_protocols existing
+    on substring(existing.protocol from 4 for 8)=day.date_key
+   and existing.protocol ~ '^AS-[0-9]{8}-[0-9]{6}$'
+  group by day.protocol_date
+)
+insert into citizen_protocol_sequences(protocol_date,next_value,updated_at)
+select protocol_date,next_value,now() from sequence_seed
+on conflict(protocol_date) do update
+set next_value=greatest(citizen_protocol_sequences.next_value,excluded.next_value),updated_at=now();
+
+-- Fallback privado para anexos quando o Supabase Storage não está configurado.
+create table if not exists citizen_attachment_blobs(
+  storage_path varchar(500) primary key,
+  mime_type varchar(80) not null,
+  size_bytes bigint not null check(size_bytes > 0 and size_bytes <= 52428800),
+  data bytea not null,
+  created_at timestamptz not null default now()
+);
+
 create table if not exists citizen_rate_limits(
   identifier_hash char(64) primary key,
   window_started_at timestamptz not null default now(),
@@ -200,8 +265,16 @@ create index if not exists citizen_requests_phone_idx on citizen_requests(phone_
 create index if not exists citizen_requests_subject_idx on citizen_requests(lower(subject));
 create index if not exists citizen_requests_neighborhood_idx on citizen_requests(lower(neighborhood));
 create index if not exists citizen_updates_request_idx on citizen_request_updates(request_id,created_at);
+create index if not exists citizen_attachments_request_idx on citizen_request_attachments(request_id,created_at);
+create index if not exists citizen_upload_sessions_expiry_idx on citizen_upload_sessions(expires_at);
 
-revoke all on citizen_requests,citizen_request_updates,citizen_rate_limits from public;
+revoke all on citizen_requests,citizen_request_updates,citizen_request_attachments,citizen_upload_sessions,citizen_rate_limits from public;
+revoke all on citizen_attachment_blobs from public;
+revoke all on citizen_protocol_sequences from public;
 alter table citizen_requests enable row level security;
 alter table citizen_request_updates enable row level security;
+alter table citizen_request_attachments enable row level security;
+alter table citizen_upload_sessions enable row level security;
 alter table citizen_rate_limits enable row level security;
+alter table citizen_attachment_blobs enable row level security;
+alter table citizen_protocol_sequences enable row level security;

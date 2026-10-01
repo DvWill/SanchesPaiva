@@ -19,7 +19,9 @@
 </script>
 <script src="script.js?v=bandeiras-premium-20260923" defer>
 </script>
-<script src="citizen.js?v=cancelado-condicional-20260928" defer>
+<script src="citizen-attachments.js?v=anexos-demandas-20261001" defer>
+</script>
+<script src="citizen.js?v=protocolos-atomicos-20261001" defer>
 </script>
 <script src="home-news.js" defer>
 </script>
@@ -698,6 +700,25 @@
 </div>
 </div>
 </fieldset>
+<section class="attachment-section full" id="demand-attachments" aria-labelledby="attachment-title">
+<div class="attachment-section__heading">
+<h3 id="attachment-title">Fotos ou vídeos da demanda — opcional</h3>
+<p>Envie fotos ou vídeos que ajudem a equipe do gabinete a entender melhor a situação.</p>
+</div>
+<div class="attachment-dropzone" data-attachment-dropzone role="button" tabindex="0" aria-controls="demand-files" aria-describedby="attachment-help attachment-error">
+<input id="demand-files" name="attachments" type="file" accept=".jpg,.jpeg,.png,.webp,.mp4,.mov,image/jpeg,image/png,image/webp,video/mp4,video/quicktime" multiple hidden>
+<svg viewBox="0 0 48 48" aria-hidden="true">
+<path d="M14 15.5 17.5 10h13l3.5 5.5h4A5.5 5.5 0 0 1 43.5 21v16A5.5 5.5 0 0 1 38 42.5H10A5.5 5.5 0 0 1 4.5 37V21a5.5 5.5 0 0 1 5.5-5.5h4Z"/>
+<path d="M24 34V20m0 0-5 5m5-5 5 5"/>
+</svg>
+<strong>Adicionar fotos ou vídeos</strong>
+<span id="attachment-help">Clique para selecionar ou arraste os arquivos aqui</span>
+<small>JPG, PNG, WEBP, MP4 ou MOV</small>
+</div>
+<p id="attachment-error" class="attachment-error" data-attachment-error role="alert"></p>
+<ul class="attachment-previews" data-attachment-list aria-label="Arquivos selecionados"></ul>
+<p class="attachment-count" data-attachment-count aria-live="polite" hidden></p>
+</section>
 <div class="honeypot" aria-hidden="true">
 <label for="citizen-website">Não preencha este campo</label>
 <input id="citizen-website" name="website" tabindex="-1" autocomplete="off">
