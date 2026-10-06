@@ -4,6 +4,7 @@ const MAX_ATTACHMENTS = 5;
 const IMAGE_MAX_BYTES = 10 * 1024 * 1024;
 const VIDEO_MAX_BYTES = 50 * 1024 * 1024;
 const DEFAULT_BUCKET = 'citizen-demand-attachments';
+const VERCEL_BLOB_BUCKET = 'vercel-blob';
 const ALLOWED_FILES = Object.freeze({
   '.jpg': { type: 'image', mimeType: 'image/jpeg', maxBytes: IMAGE_MAX_BYTES },
   '.jpeg': { type: 'image', mimeType: 'image/jpeg', maxBytes: IMAGE_MAX_BYTES },
@@ -49,11 +50,38 @@ function validateAttachmentDescriptors(input) {
   return { valid: errors.length === 0, errors, files };
 }
 
+// Provedores: Supabase Storage, Vercel Blob privado ou, sem nenhum dos dois, o próprio banco (desenvolvimento/testes).
 function storageConfig() {
   const url = String(process.env.SUPABASE_URL || '').replace(/\/$/, '');
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
-  const bucket = process.env.CITIZEN_ATTACHMENTS_BUCKET || DEFAULT_BUCKET;
-  return { url, serviceKey, bucket, configured: /^https:\/\//.test(url) && Boolean(serviceKey) };
+  const supabase = /^https:\/\//.test(url) && Boolean(serviceKey);
+  const blob = !supabase && Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+  const provider = supabase ? 'supabase' : blob ? 'vercel-blob' : 'database';
+  const bucket = blob ? VERCEL_BLOB_BUCKET : process.env.CITIZEN_ATTACHMENTS_BUCKET || DEFAULT_BUCKET;
+  return { provider, url, serviceKey, bucket, configured: provider !== 'database' };
+}
+
+// Carregado só quando o Vercel Blob está em uso.
+const vercelBlob = () => require('@vercel/blob');
+
+// URLs assinadas do Vercel Blob: o navegador envia direto ao armazenamento, sem passar pela função (limite de 4,5 MB).
+async function presignVercelBlob(pathname, operation, options = {}) {
+  const { issueSignedToken, presignUrl } = vercelBlob();
+  const validUntil = Date.now() + (options.expiresIn || 3600) * 1000;
+  const constraints = operation === 'put' ? { allowedContentTypes: [options.mimeType], maximumSizeInBytes: options.maxBytes } : {};
+  const token = await issueSignedToken({ pathname, operations: [operation], validUntil, ...constraints });
+  const extra = operation === 'put' ? { ...constraints, addRandomSuffix: false, allowOverwrite: true } : {};
+  const { presignedUrl } = await presignUrl(token, { operation, pathname, access: 'private', validUntil, ...extra });
+  return presignedUrl;
+}
+
+function uploadError(attachment, code) {
+  const error = new Error(code === 'ATTACHMENT_TYPE_MISMATCH'
+    ? `${attachment.name}: o formato recebido não corresponde ao tipo de arquivo selecionado.`
+    : `${attachment.name}: o upload ficou incompleto. Remova o arquivo, selecione-o novamente e tente outra vez.`);
+  error.code = code;
+  error.status = 400;
+  return error;
 }
 
 function encodedObjectPath(bucket, objectPath) {
@@ -126,13 +154,24 @@ function localUploadUrl(attachment) {
 }
 
 async function createSignedUploads(attachments) {
-  if (!storageConfig().configured) {
+  const { provider } = storageConfig();
+  if (provider === 'database') {
     return attachments.map((attachment) => ({
       client_id: attachment.client_id,
       path: attachment.storage_path,
       mime_type: attachment.mime_type,
-      signed_url: localUploadUrl(attachment)
+      signed_url: localUploadUrl(attachment),
+      headers: { 'Content-Type': attachment.mime_type }
     }));
+  }
+  if (provider === 'vercel-blob') {
+    return Promise.all(attachments.map(async (attachment) => ({
+      client_id: attachment.client_id,
+      path: attachment.storage_path,
+      mime_type: attachment.mime_type,
+      signed_url: await presignVercelBlob(attachment.storage_path, 'put', { mimeType: attachment.mime_type, maxBytes: Number(attachment.size) }),
+      headers: { 'Content-Type': attachment.mime_type }
+    })));
   }
   await ensureAttachmentBucket();
   const { bucket, url } = storageConfig();
@@ -145,12 +184,28 @@ async function createSignedUploads(attachments) {
       client_id: attachment.client_id,
       path: attachment.storage_path,
       mime_type: attachment.mime_type,
-      signed_url: signedPath.startsWith('http') ? signedPath : `${url}/storage/v1${signedPath}`
+      signed_url: signedPath.startsWith('http') ? signedPath : `${url}/storage/v1${signedPath}`,
+      headers: { 'x-upsert': 'true', 'Content-Type': attachment.mime_type }
     };
   }));
 }
 
 async function verifyUploadedAttachments(attachments, database) {
+  if (storageConfig().provider === 'vercel-blob') {
+    const { head, BlobNotFoundError } = vercelBlob();
+    await Promise.all(attachments.map(async (attachment) => {
+      let stored;
+      try {
+        stored = await head(attachment.storage_path);
+      } catch (error) {
+        if (error instanceof BlobNotFoundError) throw uploadError(attachment, 'ATTACHMENT_UPLOAD_INCOMPLETE');
+        throw Object.assign(new Error('Falha ao confirmar os anexos no armazenamento.'), { code: 'ATTACHMENT_STORAGE_ERROR', status: 503 });
+      }
+      if (Number(stored.size) !== Number(attachment.size)) throw uploadError(attachment, 'ATTACHMENT_UPLOAD_INCOMPLETE');
+      if (String(stored.contentType || '').toLowerCase() !== attachment.mime_type) throw uploadError(attachment, 'ATTACHMENT_TYPE_MISMATCH');
+    }));
+    return;
+  }
   if (!storageConfig().configured) {
     const paths = attachments.map((attachment) => attachment.storage_path);
     const { rows } = await database.query('select storage_path,mime_type,size_bytes from citizen_attachment_blobs where storage_path = any($1::text[])', [paths]);
@@ -196,6 +251,15 @@ async function verifyUploadedAttachments(attachments, database) {
 
 async function signAttachmentDownloads(attachments, expiresIn = 900) {
   if (!attachments.length) return [];
+  if (storageConfig().provider === 'vercel-blob') {
+    return Promise.all(attachments.map(async (attachment) => {
+      try {
+        return { ...attachment, url: await presignVercelBlob(attachment.storage_path, 'get', { expiresIn }) };
+      } catch {
+        return { ...attachment, url: null };
+      }
+    }));
+  }
   if (!storageConfig().configured) return attachments.map((item) => ({
     ...item,
     url: `/api/citizen/attachments/local?${new URLSearchParams({ path: item.storage_path })}`
@@ -219,6 +283,10 @@ async function removeAttachmentObjects(attachments, database) {
   if (!paths.length) return;
   if (!storageConfig().configured) {
     await database?.query('delete from citizen_attachment_blobs where storage_path = any($1::text[])', [paths]);
+    return;
+  }
+  if (storageConfig().provider === 'vercel-blob') {
+    await vercelBlob().del(paths);
     return;
   }
   const { bucket } = storageConfig();

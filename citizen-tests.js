@@ -11,7 +11,7 @@ const {
   formatSequentialProtocol,
   createWhatsAppUrl
 } = require('./citizen-service');
-const { validateAttachmentDescriptors, createAttachmentPlan } = require('./citizen-attachments-service');
+const { validateAttachmentDescriptors, createAttachmentPlan, storageConfig } = require('./citizen-attachments-service');
 
 const validPayload = {
   name: 'Maria da Silva',
@@ -73,6 +73,12 @@ assert(!validateAttachmentDescriptors([{...attachmentDescriptors[0],size:11*1024
 assert(!validateAttachmentDescriptors(Array.from({length:6},(_,index)=>({...attachmentDescriptors[0],client_id:`${index}1994d24-6c1c-4afb-9e2d-4c39d9a1568c`}))).valid,'Mais de cinco anexos foram aceitos');
 const attachmentPlan=createAttachmentPlan('AS-20260921-K7M4Q2',validAttachments.files);
 assert(attachmentPlan.every((item)=>item.storage_path.startsWith('demandas/AS-20260921-K7M4Q2/')),'Caminho dos anexos não usa o protocolo');
+const storageEnv=['SUPABASE_URL','SUPABASE_SERVICE_ROLE_KEY','BLOB_READ_WRITE_TOKEN'].map((key)=>[key,process.env[key]]);
+const withStorageEnv=(values,check)=>{for(const [key] of storageEnv)delete process.env[key];Object.assign(process.env,values);try{check(storageConfig())}finally{for(const [key,value] of storageEnv){if(value===undefined)delete process.env[key];else process.env[key]=value}}};
+withStorageEnv({},(config)=>assert(config.provider==='database'&&!config.configured,'Sem armazenamento externo os anexos devem usar o banco'));
+withStorageEnv({BLOB_READ_WRITE_TOKEN:'vercel_blob_rw_teste'},(config)=>assert(config.provider==='vercel-blob'&&config.configured&&config.bucket==='vercel-blob','Vercel Blob não foi selecionado para os anexos'));
+withStorageEnv({BLOB_READ_WRITE_TOKEN:'vercel_blob_rw_teste',SUPABASE_URL:'https://exemplo.supabase.co',SUPABASE_SERVICE_ROLE_KEY:'chave'},(config)=>assert(config.provider==='supabase','Supabase configurado deve ter prioridade sobre o Vercel Blob'));
+assert(!fs.readFileSync('citizen-attachments.js','utf8').includes("headers: { 'x-upsert'")||fs.readFileSync('citizen-attachments.js','utf8').includes('instruction.headers'),'Upload deve usar os cabeçalhos informados pelo servidor');
 
 const serverSource = fs.readFileSync('server.js','utf8');
 const clientSource = fs.readFileSync('citizen.js','utf8');

@@ -148,9 +148,10 @@
             : new File([entry.file], entry.file.name, { type: entry.rule.mimeType, lastModified: entry.file.lastModified });
           let response;
           try {
+            // Cada armazenamento aceita cabeçalhos diferentes; o servidor informa quais usar.
             response = await fetch(instruction.signed_url, {
               method: 'PUT',
-              headers: { 'x-upsert': 'true', 'Content-Type': entry.rule.mimeType },
+              headers: instruction.headers || { 'x-upsert': 'true', 'Content-Type': entry.rule.mimeType },
               body: typedFile
             });
           } catch {

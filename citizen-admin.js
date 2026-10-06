@@ -25,6 +25,22 @@
   const categoryLabel = (request) => request.category === 'Outro' && request.category_other ? `Outro — ${request.category_other}` : request.category;
   const statusLabel = (status) => STATUS_LABELS[status] || status;
   const formatSize = (bytes) => `${new Intl.NumberFormat('pt-BR', { maximumFractionDigits: 1 }).format(Number(bytes || 0) / 1024 / 1024)} MB`;
+  // Visualizador de imagens dos anexos, criado sob demanda.
+  let attachmentViewer;
+  const openAttachmentViewer = (attachment) => {
+    if (!attachmentViewer) {
+      attachmentViewer = document.createElement('dialog');
+      attachmentViewer.className = 'attachment-viewer';
+      attachmentViewer.innerHTML = '<button type="button" class="attachment-viewer__close" aria-label="Fechar imagem">×</button><img alt=""><p></p>';
+      attachmentViewer.querySelector('button').addEventListener('click', () => attachmentViewer.close());
+      attachmentViewer.addEventListener('click', (event) => { if (event.target === attachmentViewer) attachmentViewer.close(); });
+      document.body.append(attachmentViewer);
+    }
+    attachmentViewer.querySelector('img').src = attachment.url;
+    attachmentViewer.querySelector('img').alt = attachment.name;
+    attachmentViewer.querySelector('p').textContent = attachment.name;
+    attachmentViewer.showModal();
+  };
   const fillOptions = (select, options, labels = {}) => options.forEach((value) => {
     const option = document.createElement('option');
     option.value = value;
@@ -138,31 +154,51 @@
     attachmentSection.hidden = attachments.length === 0;
     document.querySelector('#demand-attachments-count').textContent = `${attachments.length} de 5`;
     attachments.forEach((attachment) => {
-      const card = document.createElement(attachment.url ? 'a' : 'div');
+      const card = document.createElement('article');
       card.className = 'demand-attachment';
-      if (attachment.url) {
-        card.href = attachment.url;
-        card.target = '_blank';
-        card.rel = 'noopener';
-        card.title = `Abrir ${attachment.name}`;
-      }
       const media = document.createElement('div');
       media.className = 'demand-attachment__media';
       if (attachment.type === 'image' && attachment.url) {
+        // A imagem abre ampliada no próprio painel.
+        const zoom = document.createElement('button');
+        zoom.type = 'button';
+        zoom.className = 'demand-attachment__zoom';
+        zoom.setAttribute('aria-label', `Ampliar ${attachment.name}`);
         const image = document.createElement('img');
         image.src = attachment.url;
         image.alt = '';
         image.loading = 'lazy';
-        media.append(image);
+        zoom.append(image);
+        zoom.addEventListener('click', () => openAttachmentViewer(attachment));
+        media.append(zoom);
+      } else if (attachment.type === 'video' && attachment.url) {
+        const video = document.createElement('video');
+        video.src = attachment.url;
+        video.controls = true;
+        video.preload = 'metadata';
+        video.playsInline = true;
+        video.setAttribute('aria-label', `Vídeo ${attachment.name}`);
+        media.append(video);
       } else {
         media.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h7a3 3 0 0 1 3 3v1.5l4-2v11l-4-2V17a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V7a3 3 0 0 1 3-3Z"/></svg>';
       }
       const details = document.createElement('div');
+      details.className = 'demand-attachment__details';
       const name = document.createElement('strong');
       const meta = document.createElement('span');
       name.textContent = attachment.name;
-      meta.textContent = `${attachment.type === 'image' ? 'Imagem' : 'Vídeo'} · ${formatSize(attachment.size)}${attachment.url ? ' · Abrir' : ' · Indisponível'}`;
+      name.title = attachment.name;
+      meta.textContent = `${attachment.type === 'image' ? 'Imagem' : 'Vídeo'} · ${formatSize(attachment.size)}${attachment.url ? '' : ' · Indisponível'}`;
       details.append(name, meta);
+      if (attachment.url) {
+        const download = document.createElement('a');
+        download.className = 'demand-attachment__download';
+        download.href = attachment.url;
+        download.target = '_blank';
+        download.rel = 'noopener';
+        download.textContent = 'Baixar original';
+        details.append(download);
+      }
       card.append(media, details);
       attachmentList.append(card);
     });

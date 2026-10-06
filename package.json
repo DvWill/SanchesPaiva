@@ -10,6 +10,7 @@
     "test": "node tests.js && node citizen-tests.js && node auth-tests.js"
   },
   "dependencies": {
+    "@vercel/blob": "^2.8.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",

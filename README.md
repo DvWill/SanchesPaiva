@@ -16,7 +16,7 @@ Site institucional com blog, painel editorial e o canal de atendimento ao cidad�
 
 - `citizen_requests`: demanda principal, protocolo, contato, localização, categoria, consentimentos, situação e resposta pública.
 - `citizen_request_updates`: histórico de mudanças, com conteúdo público, anotação interna, encaminhamento e administrador responsável.
-- `citizen_request_attachments`: metadados dos anexos vinculados à demanda; os arquivos ficam em um bucket privado do Supabase Storage.
+- `citizen_request_attachments`: metadados dos anexos vinculados à demanda; os arquivos ficam no Vercel Blob privado (ou no Supabase Storage, se configurado), nunca dentro do banco.
 - `citizen_upload_sessions`: autorizações temporárias usadas para enviar anexos antes de concluir a demanda.
 - `citizen_rate_limits`: limitação de cadastros e consultas por identificador pseudonimizado.
 - `admins` e `admin_sessions`: usuários administrativos e sessões autenticadas.
@@ -43,6 +43,10 @@ PORT=3000
 ```
 
 `DATABASE_URL`, `ADMIN_PASSWORD` e `RATE_LIMIT_SECRET` são segredos de servidor e nunca devem ser incluídos no frontend. Gere `RATE_LIMIT_SECRET` com pelo menos 32 caracteres aleatórios. Use `TRUST_PROXY=1` quando o aplicativo estiver atrás de um proxy confiável; use `0` no acesso local direto.
+
+`BLOB_READ_WRITE_TOKEN` é criado pela Vercel ao conectar o Blob store privado `sanches-demandas-anexos` ao projeto e é o armazenamento usado em produção. O navegador envia cada foto ou vídeo direto ao Blob por uma URL pré-assinada de uso único, porque as funções da Vercel recusam corpos acima de 4,5 MB. Antes de gravar a demanda, o servidor confere tamanho e tipo de cada arquivo; no painel, eles são exibidos por URLs assinadas válidas por 15 minutos. Os anexos não são enviados pelo WhatsApp, apenas o protocolo.
+
+Sem `BLOB_READ_WRITE_TOKEN` nem Supabase, os anexos são gravados no próprio banco (`citizen_attachment_blobs`), opção adequada apenas para desenvolvimento local.
 
 `SUPABASE_SERVICE_ROLE_KEY` também é um segredo exclusivo do servidor. Quando o cidadão envia anexos, o backend cria autorizações temporárias de upload, confirma no Storage o tamanho e o tipo recebidos e só então grava a demanda. O bucket configurado em `CITIZEN_ATTACHMENTS_BUCKET` é criado como privado na primeira utilização; no painel, os arquivos são exibidos por URLs assinadas de curta duração.
 
