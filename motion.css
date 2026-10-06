@@ -1,0 +1,130 @@
+/* Camada de movimento: animações, transições e interações dinâmicas.
+   Tudo fica sob .motion-ready, classe aplicada apenas quando o visitante não pediu redução de movimento. */
+:root{--ease-out:cubic-bezier(.16,1,.3,1);--ease-spring:cubic-bezier(.34,1.56,.64,1)}
+@media(prefers-reduced-motion:no-preference){@view-transition{navigation:auto}}
+
+/* Barra de progresso de leitura */
+.scroll-progress{position:fixed;z-index:130;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--aqua),#7ee8de 55%,var(--yellow));transform:scaleX(var(--progress,0));transform-origin:0 50%;pointer-events:none;box-shadow:0 0 12px rgba(21,196,180,.55)}
+
+/* Header recolhe ao rolar para baixo e volta ao rolar para cima */
+.motion-ready .header{transition:top .25s ease,translate .55s var(--ease-out)}
+.motion-ready .header.is-hidden{translate:0 calc(-100% - 24px)}
+
+/* Navegação com sublinhado animado no desktop */
+@media(min-width:1001px){
+  .motion-ready .nav-shell nav>a{position:relative;transition:opacity .25s ease,color .25s ease}
+  .motion-ready .nav-shell nav>a::after{content:"";position:absolute;left:0;right:0;bottom:-7px;height:2px;border-radius:2px;background:var(--aqua);transform:scaleX(0);transform-origin:right;transition:transform .45s var(--ease-out)}
+  .motion-ready .nav-shell nav>a:hover::after,.motion-ready .nav-shell nav>a.active::after{transform:scaleX(1);transform-origin:left}
+}
+
+/* Botões com brilho e efeito magnético */
+.motion-ready .btn{position:relative;overflow:hidden;isolation:isolate;transition:transform .25s ease,box-shadow .25s ease,translate .35s var(--ease-out),background .25s ease,color .25s ease}
+.motion-ready .btn::after{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.5) 50%,transparent 70%);translate:-120% 0;transition:translate .8s var(--ease-out);pointer-events:none}
+.motion-ready .btn:hover::after,.motion-ready .btn:focus-visible::after{translate:120% 0}
+.motion-ready .btn b{display:inline-block;transition:transform .35s var(--ease-spring)}
+.motion-ready .btn:hover b{transform:translate(3px,-3px)}
+.motion-ready .text-link{background:linear-gradient(var(--aqua),var(--aqua)) 0 100%/0 2px no-repeat;transition:background-size .5s var(--ease-out),color .25s ease}
+.motion-ready .text-link:hover{background-size:100% 2px;color:var(--aqua)}
+.motion-ready .text-link b{display:inline-block;transition:transform .35s var(--ease-spring)}
+.motion-ready .text-link:hover b{transform:translateY(4px)}
+.motion-ready :is(.citizen-launcher,.top,.album-controls button){transition-property:width,height,flex-basis,transform,filter,opacity,background,translate;transition-duration:.25s,.25s,.25s,.25s,.25s,.2s,.2s,.35s;transition-timing-function:ease,ease,ease,ease,ease,ease,ease,var(--ease-out)}
+
+/* Revelação ao rolar: mais suave, com variações de direção */
+.motion-ready .reveal{transform:none;opacity:0;translate:0 48px;transition:opacity .9s var(--ease-out),translate 1.1s var(--ease-out),scale 1.1s var(--ease-out),transform .35s ease,box-shadow .35s ease,border-color .35s ease}
+.motion-ready .reveal[data-reveal=left]{translate:-64px 0}
+.motion-ready .reveal[data-reveal=right]{translate:64px 0}
+.motion-ready .reveal[data-reveal=zoom]{translate:0 28px;scale:.94}
+.motion-ready .reveal.visible{opacity:1;translate:none;scale:none}
+@media(max-width:720px){
+  .motion-ready .reveal,.motion-ready .reveal[data-reveal]{translate:0 28px;scale:none}
+  .motion-ready .reveal.visible{translate:none}
+}
+
+/* Filhos que entram em sequência */
+.motion-ready [data-stagger]:not(.is-in)>*{opacity:0}
+.motion-ready [data-stagger].is-in>*{animation:motion-rise .9s var(--ease-out) backwards;animation-delay:calc(var(--stagger-base,0ms) + var(--i,0) * 90ms)}
+.motion-ready .hero .score{--stagger-base:900ms}
+
+/* Imagens que se acomodam ao aparecer */
+.motion-ready .legacy-photo img{scale:1.16;transition:scale 1.8s var(--ease-out)}
+.motion-ready .legacy-photo.visible img{scale:1}
+.motion-ready .resultado-card__background{transition:transform .6s ease,scale 1.8s var(--ease-out)}
+.motion-ready .resultado-card:not(.visible) .resultado-card__background{scale:1.18}
+
+/* Abertura do hero */
+.motion-ready .hero .reveal{opacity:1;translate:none;scale:none;transition:none}
+.motion-ready .hero h1:not(.is-split){opacity:0;animation:motion-show .01s 2.2s forwards}
+.motion-ready .hero h1 .w{display:inline-block;overflow:hidden;vertical-align:top;padding-bottom:.14em;margin-bottom:-.14em}
+.motion-ready .hero h1 .w>span{display:inline-block;animation:motion-word 1.15s var(--ease-out) backwards;animation-delay:calc(200ms + var(--i,0) * 85ms)}
+.motion-ready .hero h1>span:not(.w){position:relative;width:max-content;max-width:100%}
+.motion-ready .hero h1>span:not(.w)::after{content:"";position:absolute;left:.04em;right:.1em;bottom:.04em;height:.09em;border-radius:99px;background:linear-gradient(90deg,var(--aqua),rgba(21,196,180,.15));transform:scaleX(0);transform-origin:left;animation:motion-line 1.1s var(--ease-out) 1.05s forwards}
+.motion-ready .hero .overline{animation:motion-rise .9s var(--ease-out) .05s backwards}
+.motion-ready .hero .overline i{transform-origin:left;animation:motion-line .9s var(--ease-out) .35s backwards}
+.motion-ready .hero h2{animation:motion-rise 1s var(--ease-out) .75s backwards}
+.motion-ready .hero .hero-text{animation:motion-rise 1s var(--ease-out) .9s backwards}
+.motion-ready .hero .actions{animation:motion-rise 1s var(--ease-out) 1.05s backwards}
+.motion-ready .hero-portrait{animation:motion-fade 1.2s var(--ease-out) .1s backwards}
+.motion-ready .hero .portrait-frame img{animation:motion-portrait 1.8s var(--ease-out) .15s backwards}
+.motion-ready .hero .portrait-halo{animation:motion-breathe 7s ease-in-out infinite}
+.motion-ready .hero .vertical-label{animation:motion-fade 1.4s ease .9s backwards}
+.motion-ready .hero .id-card{animation:motion-slide 1s var(--ease-out) 1.1s backwards}
+.motion-ready .hero .presence{animation:motion-pop .8s var(--ease-spring) 1.3s backwards,motion-float 5s ease-in-out 2.2s infinite}
+.motion-ready .hero-grid-bg{animation:motion-grid 16s linear infinite}
+.motion-ready .hero-word{translate:calc(var(--hx,0) * -28px) calc(var(--hy,0) * -22px + var(--sy,0px));transition:translate .8s var(--ease-out)}
+.hero-spotlight{position:absolute;inset:0;z-index:0;pointer-events:none;background:radial-gradient(560px circle at var(--mx,70%) var(--my,40%),rgba(21,196,180,.16),transparent 62%);opacity:0;transition:opacity .6s ease}
+.hero.is-pointer .hero-spotlight{opacity:1}
+
+/* Faixa em movimento abaixo do hero */
+.ticker{position:relative;z-index:4;overflow:hidden;padding:17px 0;background:var(--night);color:#fff;border-bottom:1px solid rgba(255,255,255,.08)}
+.ticker__track{display:flex;width:max-content;animation:motion-marquee 42s linear infinite}
+.ticker__group{display:flex;flex:none;align-items:center;gap:30px;padding-right:30px;font:700 clamp(.95rem,1.5vw,1.3rem)/1 var(--display);letter-spacing:-.02em;white-space:nowrap}
+.ticker__group span:nth-child(4n+1){color:var(--aqua)}
+.ticker__group i{font-style:normal;font-size:.8em;color:var(--yellow)}
+.ticker:hover .ticker__track{animation-play-state:paused}
+
+/* Brilho que acompanha o cursor em cards */
+.card-glow{position:absolute;inset:0;z-index:1;border-radius:inherit;pointer-events:none;background:radial-gradient(380px circle at var(--mx,50%) var(--my,50%),rgba(255,255,255,.55),transparent 55%);mix-blend-mode:soft-light;opacity:0;transition:opacity .45s ease}
+.is-hovered>.card-glow{opacity:1}
+:where(.partnership-result,.insta-card,.career-card){position:relative}
+.motion-ready :is(.bento,.law-panels,.insta-grid,.partnership-panel__results,.album-carousel){perspective:1400px}
+.motion-ready [data-tilt]{transition:rotate .6s var(--ease-out),transform .35s ease,box-shadow .35s ease,border-color .35s ease,opacity .9s var(--ease-out),translate 1.1s var(--ease-out),scale 1.1s var(--ease-out)}
+.motion-ready [data-tilt].is-hovered{transition:rotate .15s linear,transform .35s ease,box-shadow .35s ease,border-color .35s ease,opacity .9s var(--ease-out),translate 1.1s var(--ease-out),scale 1.1s var(--ease-out)}
+
+/* Texto que acende conforme a leitura */
+.motion-ready .lit-word{opacity:.16;transition:opacity .45s ease}
+.motion-ready .lit-word.is-lit{opacity:1}
+
+/* Números que contam */
+.motion-ready .is-counting{font-variant-numeric:tabular-nums}
+.motion-ready .is-counted{animation:motion-bump .6s var(--ease-spring)}
+
+/* Parallax e detalhes contínuos */
+.motion-ready :is(.back-word,.footer-word,.art-number,.big-mark,.law-panel>strong){will-change:translate}
+.motion-ready .back-word,.motion-ready .footer-word{translate:var(--px,0px) 0}
+.motion-ready :is(.art-number,.big-mark,.law-panel>strong){translate:0 var(--py,0px)}
+.motion-ready .circle-word{rotate:var(--pr,0deg)}
+.motion-ready .community-character-link{animation:motion-bob 4.5s ease-in-out infinite}
+.motion-ready .flags .flag-card.active .flag-card__top i{animation:motion-nudge 1.6s ease-in-out infinite}
+.motion-ready .reveal .eyebrow{transition:letter-spacing 1.2s var(--ease-out) .15s}
+.motion-ready .reveal:not(.visible) .eyebrow{letter-spacing:.42em}
+
+@keyframes motion-rise{from{opacity:0;translate:0 32px}}
+@keyframes motion-fade{from{opacity:0}}
+@keyframes motion-show{to{opacity:1}}
+@keyframes motion-word{from{translate:0 115%;rotate:5deg}}
+@keyframes motion-line{from{transform:scaleX(0)}to{transform:scaleX(1)}}
+@keyframes motion-portrait{from{scale:1.18;filter:saturate(.2) brightness(.7)}}
+@keyframes motion-breathe{0%,100%{scale:1;opacity:.85}50%{scale:1.08;opacity:1}}
+@keyframes motion-slide{from{opacity:0;translate:-48px 0}}
+@keyframes motion-pop{from{opacity:0;scale:.4}}
+@keyframes motion-float{0%,100%{translate:0 0}50%{translate:0 -10px}}
+@keyframes motion-grid{to{translate:0 70px}}
+@keyframes motion-marquee{to{transform:translateX(-50%)}}
+@keyframes motion-bump{40%{scale:1.12}}
+@keyframes motion-bob{0%,100%{translate:0 0}50%{translate:0 -8px}}
+@keyframes motion-nudge{0%,100%{translate:0 0}50%{translate:3px -3px}}
+
+@media(prefers-reduced-motion:reduce){
+  .ticker__track{animation:none}
+  .hero-spotlight,.card-glow,.scroll-progress{display:none}
+}
