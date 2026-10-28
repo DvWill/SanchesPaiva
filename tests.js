@@ -22,7 +22,7 @@ cp.execFileSync(process.execPath,['--check','motion.js'],{stdio:'inherit'});
 assert(home.includes('motion.css')&&home.includes('motion.js')&&home.includes('class="ticker"')&&read('build.js').includes("'motion.css'")&&read('build.js').includes("'motion.js'"),'Camada de animações ausente da página inicial ou do build');
 assert(read('motion.css').includes('prefers-reduced-motion'),'Animações sem respeito a movimento reduzido');
 assert(read('script.js').includes('.sort((a,b)=>a.top-b.top)'),'Destaque ativo da navegação não considera a ordem visual das seções');
-assert(event&&event.layout==='ocidental-gastro'&&event.images.length===20,'Conteúdo editorial do Ocidental Gastrô incompleto');
+assert(event&&event.layout==='ocidental-gastro'&&event.images.length===9,'Conteúdo editorial do Ocidental Gastrô incompleto');
 assert(home.includes(`./post.html?slug=${eventSlug}`)&&home.includes('Conheça o evento'),'Card do Ocidental Gastrô sem destino ou chamada');
 for(const image of event.images)assert(fs.existsSync(`.${image.url}`),`Imagem editorial ausente: ${image.url}`);
 const employmentSlug='3-feirao-do-emprego-supera-2300-atendimentos',employment=editorial[employmentSlug];

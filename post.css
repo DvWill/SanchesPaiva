@@ -35,3 +35,5 @@
 @media(max-width:390px){.og-stats ul{grid-template-columns:repeat(2,minmax(0,1fr))}.og-stats li,.og-stats li:nth-child(2){min-height:128px;padding:20px 14px;border-left:0;border-top:0}.og-stats li:nth-child(even){border-left:1px solid rgba(255,255,255,.09)}.og-stats li:nth-child(n+3){border-top:1px solid rgba(255,255,255,.09)}.og-stats strong{font-size:clamp(1.5rem,7.5vw,1.8rem)}}
 
 @media(prefers-reduced-motion:reduce){.og-hero-media img{animation:none;transform:none}.og-reveal{opacity:1;transform:none;transition:none}.og-food-collage img,.og-organization-media img,.og-impact-photo img,.og-culture-grid img,.og-gallery-item,.og-gallery-item img,.og-lightbox button{transition:none}.og-gallery-item:hover,.og-gallery-item:hover img,.og-lightbox button:hover{transform:none}}
+
+.og-gallery-item img{object-fit:cover}

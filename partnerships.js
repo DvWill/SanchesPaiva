@@ -5,8 +5,9 @@
       partner: 'Cristóvão Tormin',
       role: 'Deputado Estadual',
       accent: 'turquoise',
-      image: null,
-      expectedImage: 'assets/parcerias/cristovao-tormin.webp',
+      image: 'assets/parcerias/cristovao-tormin.png',
+      imagePosition: 'center bottom',
+      imageFit: 'contain',
       description: 'Parceria em saúde, bem-estar animal e turismo religioso.',
       results: [
         {
@@ -15,8 +16,8 @@
           title: 'Mutirão da Saúde',
           summary: 'A parceria viabilizou recursos para ampliar os atendimentos médicos e levar serviços de saúde a diferentes bairros de Cidade Ocidental.',
           benefits: 'Ampliação do acesso da população a atendimentos médicos e serviços de saúde nos bairros.',
-          image: null,
-          expectedImage: 'assets/parcerias/mutirao-saude.webp',
+          image: 'assets/parcerias/mutirao-saude.jpg',
+          imagePosition: 'center center',
           imageAlt: 'Atendimentos do Mutirão da Saúde em Cidade Ocidental',
           metadata: { amount: null, year: null, lawNumber: null, beneficiaries: null, officialSource: null }
         },
@@ -38,8 +39,8 @@
           title: 'Santuário Jardim da Imaculada',
           summary: 'A articulação fortaleceu o reconhecimento da importância religiosa, cultural e histórica do Santuário Jardim da Imaculada para Cidade Ocidental e para Goiás.',
           benefits: 'Valorização do patrimônio religioso, cultural e histórico do município e fortalecimento do turismo religioso.',
-          image: null,
-          expectedImage: 'assets/parcerias/santuario-imaculada.webp',
+          image: 'assets/parcerias/santuario-imaculada.jpg',
+          imagePosition: '72% center',
           imageAlt: 'Santuário Jardim da Imaculada em Cidade Ocidental',
           metadata: { amount: null, year: null, lawNumber: null, beneficiaries: null, officialSource: null }
         }
@@ -50,8 +51,9 @@
       partner: 'Lêda Borges',
       role: 'Deputada Federal',
       accent: 'yellow',
-      image: null,
-      expectedImage: 'assets/parcerias/leda-borges.webp',
+      image: 'assets/parcerias/leda-borges.png',
+      imagePosition: 'center bottom',
+      imageFit: 'contain',
       description: 'Parceria em cultura, tradição e infraestrutura.',
       results: [
         {
@@ -60,8 +62,8 @@
           title: 'Festival Canta Jardim',
           summary: 'A articulação garantiu recursos para fortalecer um dos principais eventos culturais e musicais da região.',
           benefits: 'Fortalecimento da programação cultural e musical e valorização de um evento importante para a região.',
-          image: null,
-          expectedImage: 'assets/parcerias/festival-canta-jardim.webp',
+          image: 'assets/parcerias/festival-canta-jardim.webp',
+          imagePosition: 'center 48%',
           imageAlt: 'Público durante o Festival Canta Jardim',
           metadata: { amount: null, year: null, lawNumber: null, beneficiaries: null, officialSource: null }
         },
@@ -82,8 +84,8 @@
           title: 'Asfalto para o Friburgo A e B',
           summary: 'A parceria viabilizou recursos para obras de capeamento asfáltico em ruas dos bairros Friburgo A e Friburgo B.',
           benefits: 'Melhoria da mobilidade urbana e das condições de circulação nos bairros Friburgo A e Friburgo B.',
-          image: null,
-          expectedImage: 'assets/parcerias/asfalto-friburgo.webp',
+          image: 'assets/parcerias/asfalto-friburgo.jpg',
+          imagePosition: 'center 58%',
           imageAlt: 'Obra de capeamento asfáltico nos bairros Friburgo A e Friburgo B',
           metadata: { amount: null, year: null, lawNumber: null, beneficiaries: null, officialSource: null }
         }
@@ -125,13 +127,14 @@
     return placeholder;
   }
 
-  function createImage(source, alt, className, position = '') {
+  function createImage(source, alt, className, position = '', fit = 'cover') {
     const image = element('img', className);
     image.src = source;
     image.alt = alt;
     image.loading = 'lazy';
     image.decoding = 'async';
     if (position) image.style.objectPosition = position;
+    if (fit !== 'cover') image.style.objectFit = fit;
     return image;
   }
 
@@ -144,7 +147,7 @@
 
     const media = element('span', 'partnership-result__media');
     media.append(result.image
-      ? createImage(result.image, result.imageAlt, 'partnership-result__image', result.imagePosition)
+      ? createImage(result.image, result.imageAlt, 'partnership-result__image', result.imagePosition, result.imageFit)
       : createPlaceholder(result.title, 'partnership-result__placeholder'));
 
     const body = element('span', 'partnership-result__body');
@@ -165,7 +168,7 @@
     const header = element('header', 'partnership-panel__header');
     const portrait = element('div', 'partnership-panel__portrait');
     portrait.append(partner.image
-      ? createImage(partner.image, `Retrato de ${partner.partner}`, 'partnership-panel__portrait-image')
+      ? createImage(partner.image, `Retrato de ${partner.partner}`, 'partnership-panel__portrait-image', partner.imagePosition, partner.imageFit)
       : createPlaceholder(`retrato de ${partner.partner}`, 'partnership-panel__portrait-placeholder'));
     const identity = element('div', 'partnership-panel__identity');
     const role = element('span', 'partnership-panel__role', partner.role);
@@ -191,7 +194,7 @@
   function openDialog(partner, result, trigger) {
     returnFocus = trigger;
     modalMedia.replaceChildren(result.image
-      ? createImage(result.image, result.imageAlt, 'partnership-modal__image', result.imagePosition)
+      ? createImage(result.image, result.imageAlt, 'partnership-modal__image', result.imagePosition, result.imageFit)
       : createPlaceholder(result.title, 'partnership-modal__placeholder'));
     modalRole.textContent = result.category;
     modalPartner.textContent = `${partner.role} ${partner.partner}`;

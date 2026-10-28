@@ -87,9 +87,9 @@
               ${s.gastronomy.map(text=>`<p>${escape(text)}</p>`).join('')}
             </div>
             <div class="og-food-collage">
-              ${picture(imageByName('preparo-panela-noite.webp'),'og-photo-tall')}
-              ${picture(imageByName('expositoras-doces.webp'),'og-photo-wide')}
-              ${picture(imageByName('equipe-santiago-bbq.webp'),'og-photo-small')}
+              ${picture(imageByName('ocidental-gastro-10.jpg'),'og-photo-tall')}
+              ${picture(imageByName('ocidental-gastro-02.jpg'),'og-photo-wide')}
+              ${picture(imageByName('ocidental-gastro-07.jpg'),'og-photo-small')}
             </div>
           </div>
         </section>
@@ -103,8 +103,8 @@
             </div>
             <div class="og-attractions" aria-label="Atrações musicais">${post.attractions.map((name,index)=>`<span><small>${String(index+1).padStart(2,'0')}</small>${escape(name)}</span>`).join('')}</div>
             <div class="og-culture-grid">
-              ${picture(imageByName('palco-evento.webp'),'og-stage-photo')}
-              ${picture(imageByName('visitantes-panela-gastronomica.webp'),'og-public-photo')}
+              ${picture(imageByName('ocidental-gastro-04.jpg'),'og-stage-photo')}
+              ${picture(imageByName('ocidental-gastro-05.jpg'),'og-public-photo')}
               ${quote(q.resident)}
             </div>
           </div>
@@ -119,8 +119,8 @@
               <ul class="og-partners">${post.partners.map(partner=>`<li>${escape(partner)}</li>`).join('')}</ul>
             </div>
             <div class="og-organization-media">
-              ${picture(imageByName('equipe-organizacao-centro-artesao.webp'))}
-              ${picture(imageByName('vistoria-estrutura-lago.webp'))}
+              ${picture(imageByName('ocidental-gastro-09.jpg'))}
+              ${picture(imageByName('ocidental-gastro-08.jpg'))}
             </div>
           </div>
           <div class="og-reading og-reveal">${quote(q.institute)}</div>
@@ -128,7 +128,7 @@
 
         <section class="og-section og-impact" aria-labelledby="impacto-titulo">
           <div class="wrap og-reveal">
-            <div class="og-impact-photo">${picture(imageByName('lago-jacob.webp'))}</div>
+            <div class="og-impact-photo">${picture(imageByName('ocidental-gastro-03.jpg'))}</div>
             <div class="og-impact-panel">
               <p class="og-section-label">Economia e turismo</p>
             <h2 id="impacto-titulo">Um evento que movimenta toda a Cidade</h2>
