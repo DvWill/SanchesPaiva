@@ -26,9 +26,10 @@
           title: 'Castração animal',
           summary: 'A parceria garantiu mais de 600 castrações gratuitas de cães e gatos, promovendo saúde pública, controle populacional e bem-estar animal.',
           benefits: 'Atendimento gratuito, prevenção em saúde pública e apoio ao controle populacional de cães e gatos.',
-          image: null,
-          expectedImage: 'assets/parcerias/castracao-animal.webp',
-          imageAlt: 'Ação de castração gratuita de cães e gatos em Cidade Ocidental',
+          image: 'assets/parcerias/castracao-animal.jpg',
+          imagePosition: 'center 24%',
+          imageFit: 'cover',
+          imageAlt: 'Homem com cachorro durante ação de bem-estar animal',
           metadata: { amount: null, year: null, lawNumber: null, beneficiaries: 'Mais de 600 castrações', officialSource: null }
         },
         {
